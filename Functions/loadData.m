@@ -7,10 +7,10 @@
 
 function [data_set] = loadData(path,questionnaire_file)
     disp('Loading Data.');
-    addpath(genpath('Toolbox - Automagic'));
-    addpath(genpath('Toolbox - covariance'));
-    addpath(genpath('Toolbox - dr'));
-    addpath(genpath('Toolbox - EEGLAB'));
+    addpath(genpath('toolbox/automagic'));
+    addpath(genpath('toolbox/covariance'));
+    addpath(genpath('toolbox/dr'));
+    addpath(genpath('toolbox/eeglab2020_0'));
     addpath(genpath('MAT - Files'));
 
     A = load(questionnaire_file);
