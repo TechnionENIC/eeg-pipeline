@@ -1,0 +1,12 @@
+./~/
+matlab_scripts/*
+!matlab_scripts/*.zip
+state.mat
+*_state.mat
+*.m~
+.DS_Store
+.dropbox
+__MAXOSX
+Icon*
+gui/Automagic.prj
+gui/Automagic.mlappinstall
