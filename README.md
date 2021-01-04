@@ -1,191 +1,114 @@
-# Screens and Distractions - Project Code
-------------------------------------------
-The main script of the project is runProject.m, it contains several 
-sections that runs the differents algorithms
+EEG Pipelines
+-------------
 
-Files Requirement :
--------------------
-1. Put all the (.eeg, .vhdr, .vmrk) files of in the data folder (or subfolders in the data folder)
-2. Put the questionnaire answers (.mat) in the MAT - Files folder
-Notes:
-* The questionnaire answers (.mat) should have a column fileName which contains the (.eeg, .vhdr, .vmrk) names
-* An example of the files structure can be found in the For_SIPL_Backup 
+This project purpose is to suggest an infrastructure for processing, modeling and analyzing raw EEG data relying on MatLab and EEGLAB.
 
+To start the process run:
+`runPipeline`
 
-Section 1: Importing the data
------------------------------
-Function Name:
-[data_set] =loadData(path,questionnaire_file)
-Inputs:
-path - the path to the folder with the files (.eeg, .vhdr, .vmrk)
-questionnaire_file - the .MAT file which contains the answers for the eeg files
-Outputs:
-data_set - data_set struct which contains the following fieldes for each subject: 
-           file_name, data struct of eeglab(contains the eeg signals),  questionnaire answers for the subject
-Notes:
-*All of our function will get and work with this dataset!!!
+from Matlab termianl.
 
-
-Section 2: Preprocessing
-------------------------
-This function performs BPF to the data, and after that rereferancing to TP10 electrode
-Function Name:
-[data_set_o] = preprocessing(data_set,locutoff,hicutoff)
-Inputs:
-data_set - The data_set object from section 1
-locutoff,hicutoff - band pass range in Hz
-Outputs:
-data_set_o - The dataset after the preprocessing
-
-
-
-Section 3: Bad Channels removal
+EEG analysing pipeline tutorial
 -------------------------------
-This function removes bad chnnels from the data_set
-Function Name:
-[clean_data_set_o] = removeChannels(data_set,rem_channels)
-Inputs:
-data_set - The data_set 
-rem_channels - list of channels to be removed
-Outputs:
-data_set_o - The dataset after the channels removal
+
+## Workspace setup
+Includes MATLAB R2020B with Parallel Computing and EEGLAB 2020_0 toolbox, EEGLAB has both GUI & Scripting abilities and has proprietary plugin manager that I use to install: 
+- Adjust1.1.1
+- automagic2.4.3
+- bva-io1.6
+- clean_rawdata
+- Cleanline1.04
+- dipfit
+- firfilt
+- ICLabel
+- LIMO2.0
+- loreta2.0
+- MARA1.2
+- PowPowCAT2.20
+- PrepPipeline0.55.4
+- REST1.2
+- SASICA1.3.4
+- SIFT1.52
+
+Business logic is in sync with GitHub repo (without subjects data), to quickly learn how to script in EEGLAB it is recommended to use GUI and view command history by running eegh or EEG.history in terminal. There are many resources online including library of free open source EEG dataset and here, Youtube tutorials by founder and wiki page with workshops.
+
+## EEG raw data composition
+
+A total of 77 subjects:
+2017 - 32 subjects (report claimed 24), files naming template (story/stories)_D_DDMMYY or (story/stories)_DDMMYY_D
+2018 - 45 subjects (report claimed 34), files naming template
+ stories_DDD_DDMMYY
+
+Data captured by 64 channels with sampling interval in microseconds 2000, frequency is 500Hz and length of each session is about 4 minutes
+
+If you have channels names like Fz, Cz, Pz... this naming rule is called 'international 10-5 system' which EEGLAB can find their default values according to Oostenveld and Praamstra (2001)
+
+64Ch actiCAP snap AP-64 layout of easycap
+
+
+Childerns at the age of 3-8 practice mindfulness.
+
+Experiment can be splitted into 3 main events:
+
+Hearing stories (30sec) marked as 11,12,13,14,15
+Control hearing sounds (30sec) marked as 10
+Rest marked as 3,4
+
+Following flow format:
+(Rest) Story →  (Rest) Story →  (Rest) Control →  (Rest) Story →  (Rest) Story →  (Rest) Control →  (Rest) Story 
+
+Notice, as we can see from data, events was not marked in a consistent way
+
+
+## Load raw data to EEGLAB data structure
+Raw data was captured by BrainVision data files includes eeg, vhdr, vmrk
+- A text header file (.vhdr) containing metadata
+- A text marker file (.vmrk) containing information about events in the data
+- A binary data file (.eeg) containing the voltage values of the EEG
 
 
 
-Section 4: Split To Events
---------------------------
-The function split the each file to story of control based on the triggers marks
-Function Name:
-[data_set_o] = splitToEvents(data_set, envolve_resting)
-Inputs:
-data_set - The data_set
-envolve_resting - 0-no/1-yes, whether or not to delete the 4 sec of rest in the begining of the event
-Outputs:
-data_set_o - The dataset after the splitting
+## Citations and references
+### Automagic - Standardized Preprocessing of Big EEG Data
+github Paper
+Pedroni, A., Bahreini, A., & Langer, N. (2019). Automagic: Standardized preprocessing of big EEG data. Neuroimage. doi: 10.1016/j.neuroimage.2019.06.046
 
+### BEAPP - Batch EEG Automated Processing Platform 
+github paper
+Levin AR, Méndez Leal AS, Gabard-Durnam LJ, and O'Leary, HM. BEAPP: The Batch Electroencephalography Automated Processing Platform. Frontiers in Neuroscience (2018).
 
+### HAPPE - The Harvard Automated Processing Pipeline for Electroencephalography
+github paper
+Gabard-Durnam LJ, Mendez Leal AS, Wilkinson CL and Levin AR (2018) The Harvard Automated Processing Pipeline for Electroencephalography (HAPPE): Standardized Processing Software for Developmental and High-Artifact Data. Front. Neurosci. 12:97. doi: 10.3389/fnins.2018.00097
 
-Section 5: Split each event to smaller sections
------------------------------------------------
-Function Name:
-[data_set_o] = splitToSections(data_set,number_of_sections)
-Inputs:
-data_set - The data_set
-number_of_sections - the number of sections to be splited to
-Outputs:
-data_set_o - The dataset after the splitting
+### MADE - The Maryland analysis of developmental EEG pipeline
+github Paper
+The Maryland Analysis of Developmental EEG (MADE) Pipeline Ranjan Debnath, George A. Buzzell, Santiago Morales, Maureen E. Bowers, Stephanie C. Leach, Nathan A. Fox bioRxiv 2020.01.29.925271; doi: https://doi.org/10.1101/2020.01.29.925271
 
-You can average those sections with the function:
-[data_set_o] = avergeOfSections(data_set)
+### PREP - pipeline for standardized preprocessing of EEG
+github Paper
+Bigdely-Shamlo N, Mullen T, Kothe C, Su K-M and Robbins KA (2015)
+The PREP pipeline: standardized preprocessing for large-scale EEG analysis
+Front. Neuroinform. 9:16. doi: 10.3389/fninf.2015.00016
 
+### ADJUST - An automatic EEG artifact detector
+github Paper
+Mognon A, Jovicich J, Bruzzone L, Buiatti M. ADJUST: An automatic EEG artifact detector based on the joint use of spatial and temporal features. Psychophysiology. 2011 Feb;48(2):229-40. doi: 10.1111/j.1469-8986.2010.01061.x. PMID: 20636297.
 
+### MARA - Multiple Artifact Rejection Algorithm
+github Paper
+Irene Winkler, Stephanie Brandl, Franziska Horn, Eric Waldburger, Carsten Allefeld and Michael Tangermann. Robust artifactual independent component classification for BCI practitioners. Journal of Neural Engineering, 11 035013, 2014.
 
+### SASICA - SemiAutomatic Selection of Independent Components for Artifact correction in the EEG
+github Paper
+Chaumon M, Bishop DV, Busch NA. A Practical Guide to the Selection of Independent Components of the Electroencephalogram for Artifact Correction. Journal of neuroscience methods. 2015 
 
-Section 6: Calc Covariance Matrices
------------------------------------
-[data_set_o, cov_mat] = calcCovMat(data_set)
-Inputs:
-data_set - The data_set
-Outputs:
-data_set_o - The dataset with a new field which is the cov matrix
-cov_mat - a matrix which its rows are the subjects and columns are the cov mat flatted
+### FASTER - Fully automated statistical thresholding for EEG artifact rejection
+github Paper
+H. Nolan, R. Whelan, and R.B. Reilly. Faster: Fully automated statistical thresholding for eeg artifact rejection. Journal of Neuroscience Methods, 192(1):152-162, 2010.
 
+### Artifact Subspace Reconstruction (ASR)
 
-
-Section 7: PCA - Dimensionality Reduction
------------------------------------------
-[pca_coeff, ~] = pca(mat_cov, num_dim)
-Inputs:
-mat_cov - the matrix from previous section
-num_dim - the new dimension
-Outputs:
-pca_coeff - the coefficients 
-
-
-Section 8: Diffusion Map - Euclidian metric
--------------------------------------------
-dmap_coeff = diffusion_maps(mat_cov, num_dim, alpha, epsilon)
-Inputs:
-mat_cov - the matrix from previous section
-num_dim - the new dimension
-alpha,epsilon - diffusion maps parameters
-Outputs:
-dmap_coeff - the coefficients 
-
-
-Section 9: Diffusion Map - Riemannian metric
--------------------------------------------
-[eval_euc_dist_2017,evec_euc_dist_2017] = CalcDiffusionMapRimDist_SDP(mat_cov,epsilonFactor);
-Inputs:
-mat_cov - the matrix from previous section
-epsilonFactor - diffusion maps parameters
-Outputs:
-dmap_coeff - the coefficients
-
-
-Functions for plotting the results:
------------------------------------
-The function plot the answers histogram of all the questions:
-plotAnswersHist(questionnaire_file,8)
-Inputs:
-questionnaire_file - the .MAT file which contains the answers for the eeg files
-
-
-
-The function plot the dimensionality reduction results (2D) and colors each  subject with different color
-plotByChildren(ds_cov,dmap_coeff,title);
-Inputs:
-data_set - The data_set
-dmap_coeff - the coefficients of the dimensionality reduction
-title - title for the graph
-
-
-The function split the range of answers to 4 groups and color each group with  different color
-plotByGroups(ds_cov,coeff,questionnaire_file)
-Inputs:
-ds_cov - the data_set with the cov matrix inside of him
-data_set - The data_set
-dmap_coeff - the coefficients of the dimensionality reduction
-
-Section 10: SVM Classification
-------------------------------
-The function split the dataset to train and test, and apply svm classifier
-
-[results_TPR,results_FPR,results_TNR,results_PPV] = ...
-    svmClassification(cov_mat,ds,questionnaire_ans,per_of_train,num_of_iterations)
-Inputs:
-cov_mat - from previous sections
-ds - The data_set
-questionnaire_ans - table which conatains the questionnaire answers
-per_of_train - the percantage of the train group
-num_of_iterations - number of itrataions to repeat the lassification
-Outputs:
-tables with the results of all questions and all iterations
-
-The function will plot a graph with the results:
-plotClassificationResults(results_TPR,results_FPR,results_TNR,results_PPV)
-
-
-
-Section 11: Min Dist Classification With Riemannian metric
-----------------------------------------------------------
-[results_TPR,results_FPR,results_TNR,results_PPV] =...
-    minDistClassification(cov_mat,ds,questionnaire_ans,per_of_train,num_of_iterations)
-Inputs:
-cov_mat - from previous sections
-ds - The data_set
-questionnaire_ans - table which conatains the questionnaire answers
-per_of_train - the percantage of the train group
-num_of_iterations - number of itrataions to repeat the lassification
-Outputs:
-tables with the results of all questions and all iterations
-	
-
-Section 12: Parallel Transport For children in both years
----------------------------------------------------------
-The function plot the a graph of the child before and after the parallel transport
-parallelTransportChild(ds_cov_2017,ds_cov_2018,years_adapter,mat_cov_2017,mat_cov_2018)
-years_adapter - is an adapter for the name of the child in both years
-
+### Makoto's_preprocessing_pipeline
 
 
