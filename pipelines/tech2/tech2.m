@@ -6,18 +6,23 @@ eeglabRoot = fileparts(which('eeglab'));
 
 %% ---- Configuration ----
 
+% TODO: get all configuration data from GUI
 % TODO: validation of required plugins
-requiredPlugins = ['ICLabel' 'PrepPipeline0.55.4' 'SIFT1.52'];
+requiredPlugins = ['ICLabel' 'PrepPipeline0.55.4' 'SIFT1.52', 'dipfit3.6'];
 
 studyName = 'mindfulness';
 % Filter file that are not BrainVision header files
 rawDataFiles = dir('../../data/**/*.vhdr');
 % Directory where we want to save BIDS (Brain Imaging Data Structure) file structure
-outputPath = fullfile(eeglabRoot, 'output');
+outputPath = fullfile(pwd, 'output');
 % This channel location is compatiable with our 64Ch actiCAP snap AP-64 layout of easycap
-pathToChannelLocationFile = fullfile(eeglabRoot, 'plugins\dipfit\standard_BESA\standard-10-5-cap385.elp');
+pathToChannelLocationFile = fullfile(eeglabRoot, 'plugins\dipfit3.6\standard_BESA\standard-10-5-cap385.elp');
+
+% TODO: write warnning when savepoint is not in runSteps
+% Which steps to run?
+runSteps = [1 2 3 4 5 6];
 % Save dataset after which steps?
-savepoint = [1 2 3 4];
+savepoint = [1 2 3 4 5];
 
 % PREP preprocessing configuration
 % Harmonic line frequencies to be removed
@@ -26,8 +31,11 @@ lineFrequencies = [50  100  150  200];
 % US
 %lineFrequencies = [50  60  100  120  150  180  200  240];
 
-% HPF % TODO: LPF & enable notch filter
-detrendCutoff = 1; % HZ
+% HPF & LPF
+lowpass = 50; % Lowpass filter 30 Hz
+highpass = 0.1; % Highpass filter 0.1HZ
+
+detrendCutoff = 1;
 detrendStepSize = 0.02;
 
 % Bad channel
@@ -83,34 +91,58 @@ icflagThresh = [0 0;0 0; 0.9 1; 0 0; 0 0; 0 0; 0 0];
 [ALLEEG EEG CURRENTSET ALLCOM] = eeglab;
 
 % Iterate over entire subject data (probably worth testing it on 2 before running on all subjects) 
-% numOfSubjects = 2;
-numOfSubjects = length(rawDataFiles);
-for n=1:numOfSubjects
-    %% - Step 1: Importing raw BrainVision data and create .set data structure for each subject
+numOfSubjects = 2;
+%numOfSubjects = length(rawDataFiles);
+fprintf('\n--- Start processing %d subjects ---\n', numOfSubjects);
+parfor n=1:numOfSubjects    
     filename = rawDataFiles(n).name;
-    
-    fprintf('\n\n--- Processing subject %d (%s) ---\n\n', n, filename);
-    % Convert & load BrainVision datastructure into EEGLAB 
-    EEG = pop_loadbv(rawDataFiles(n).folder, filename);
-    
-    % Load auto channel location
-    EEG = pop_chanedit(EEG, 'lookup', pathToChannelLocationFile, 'load', []);
-    
-    % Remove file extention from file name
-    setname = filename(1:end-5);
-    EEG.setname = setname;
-    
-    % BIDS (Brain Imaging Data Structure) folder directory, study -> subjectN -> subjectN.set  
-    subjectOutputPath = fullfile(outputPath, studyName, EEG.setname);
-    mkdir(subjectOutputPath);
+    fprintf('\n--- Processing subject %d (%s) ---\n', n, filename);
+        
+    %% - Step 1: Importing raw BrainVision data and create .set data structure for each subject
+    if (ismember(1, runSteps))
+        fprintf('\n--- Step 1: Building EEGLab data structure [subject %d] ---\n', n);
+        % Convert & load BrainVision datastructure into EEGLAB 
+        EEG = pop_loadbv(rawDataFiles(n).folder, filename);
 
-    % Save #1 - raw data as EEG dataset structure
-    if (ismember(1, savepoint))
-        EEG = pop_saveset(EEG, 'filename', [EEG.setname '.set'], 'filepath', subjectOutputPath);
+        % Load auto channel location
+        EEG = pop_chanedit(EEG, 'lookup', pathToChannelLocationFile, 'load', []);
+
+        % Remove file extention from file name
+        setname = filename(1:end-5);
+        EEG.setname = setname;
+
+        % BIDS (Brain Imaging Data Structure) folder directory, study -> subjectN -> subjectN.set  
+        subjectOutputPath = fullfile(outputPath, studyName, EEG.setname);
+        mkdir(subjectOutputPath);
+
+        % Save #1 - raw data as EEG dataset structure
+        if (ismember(1, savepoint))
+            EEG = pop_saveset(EEG, 'filename', [EEG.setname '.set'], 'filepath', subjectOutputPath);
+        end
+        %[ALLEEG EEG CURRENTSET] = eeg_store(ALLEEG, EEG, n); 
+        
+        try
+            disp(EEG.event(2));
+            disp(EEG.event(18));
+        catch e
+            warning('Problem with event');
+        end
     end
-   [ALLEEG EEG CURRENTSET] = eeg_store(ALLEEG, EEG, n); 
     
-    %% - Step 2: Clean raw data using PREP preprocessing pipeline
+    %% - Step 2: Highpass & Lowpass filter
+    if (ismember(2, runSteps))
+        fprintf('\n--- Step 2: Highpass & Lowpass filter [subject %d] ---\n', n);
+        % Highpass filter 0.1hz
+        EEG = pop_eegfiltnew(EEG, [], highpass, [], false, [], 0);
+        % Lowpass filter 50hz
+        EEG = pop_eegfiltnew(EEG, [], lowpass, [], false, [], 0);
+        % Save #2 - raw data as EEG dataset structure
+        if (ismember(2, savepoint))
+            EEG = pop_saveset(EEG, 'filename', [EEG.setname '_2_hlpf.set'], 'filepath', subjectOutputPath);
+        end
+    end
+    
+    %% - Step 3: Clean raw data using PREP preprocessing pipeline
     % Run PREP pipeline
     % See param information and default values http://vislab.github.io/EEG-Clean-Tools/
     % 1. Handle boundary events prior to processing
@@ -120,52 +152,67 @@ for n=1:numOfSubjects
     % 5. Detect and interpolate bad channels relative to this reference
     % 6. Produce reports if desired
     % 7. Post process if desired
-    reportHTMLOutputPath = fullfile(outputPath, studyName, EEG.setname, strcat(EEG.setname,'.html'));
-    reportPDFOutputPath = fullfile(outputPath, studyName, EEG.setname, strcat(EEG.setname,'.pdf'));
-    fprintf('\n\n--- Step 2: Running PREP pipline ---\n\n');
-    EEG = pop_prepPipeline(EEG, struct('ignoreBoundaryEvents', true, ...
-	                              'detrendCutoff', detrendCutoff, ...
-                                  'detrendStepSize', detrendStepSize, ...
-								  'ransacCorrelationThreshold', ransacCorrelationThreshold, ...
-                                  'robustDeviationThreshold', robustDeviationThreshold, ...
-                                  'highFrequencyNoiseThreshold', highFrequencyNoiseThreshold, ... 
-                                  'correlationThreshold', correlationThreshold, ...
-                                  'badTimeThreshold', badTimeThreshold, ...
-                                  'sessionFilePath', reportPDFOutputPath, ...
-                                  'summaryFilePath', reportHTMLOutputPath, ...
-                                  'consoleFID', 1, ...
-                                  'cleanupReference', false, ...
-                                  'keepFiltered', true, ...
-                                  'removeInterpolatedChannels', true));
     
-    % Alternative preprocessing option with "clear_rawdata"                          
-    % EEG = pop_clean_rawdata(EEG, 'FlatlineCriterion',5,'ChannelCriterion',0.8,'LineNoiseCriterion',4,'Highpass','off','BurstCriterion',20,'WindowCriterion',0.25,'BurstRejection','on','Distance','Euclidian','WindowCriterionTolerances',[-Inf 7] );
-    EEG = eeg_checkset(EEG);
-    
-    % Save #2 - Dataset after preprocessing
-    if (ismember(2, savepoint))
-        EEG = pop_saveset(EEG, 'filename', [EEG.setname '_2_prep.set'], 'filepath', subjectOutputPath);
+    % TODO: create another save point after/before average - one channel
+    % snapshot image send to Michal, also before and after cutting time artifacts, run it beofre ICA (see suggested pipeline of EEGLAB) 
+    % 
+    if (ismember(3, runSteps))
+        fprintf('\n--- Step 3: Clean raw data using PREP preprocessing pipeline [subject %d] ---\n', n);
+        reportHTMLOutputPath = fullfile(outputPath, studyName, EEG.setname, strcat(EEG.setname,'.html'));
+        reportPDFOutputPath = fullfile(outputPath, studyName, EEG.setname, strcat(EEG.setname,'.pdf'));
+        EEG = pop_prepPipeline(EEG, struct('ignoreBoundaryEvents', true, ...
+                                      'detrendCutoff', detrendCutoff, ...
+                                      'detrendStepSize', detrendStepSize, ...
+                                      'ransacCorrelationThreshold', ransacCorrelationThreshold, ...
+                                      'robustDeviationThreshold', robustDeviationThreshold, ...
+                                      'highFrequencyNoiseThreshold', highFrequencyNoiseThreshold, ... 
+                                      'correlationThreshold', correlationThreshold, ...
+                                      'badTimeThreshold', badTimeThreshold, ...
+                                      'sessionFilePath', reportPDFOutputPath, ...
+                                      'summaryFilePath', reportHTMLOutputPath, ...
+                                      'consoleFID', 1, ...
+                                      'cleanupReference', false, ...
+                                      'keepFiltered', true, ...
+                                      'removeInterpolatedChannels', false));
+
+        % Alternative preprocessing option with "clear_rawdata"                          
+        % EEG = pop_clean_rawdata(EEG, 'FlatlineCriterion',5,'ChannelCriterion',0.8,'LineNoiseCriterion',4,'Highpass','off','BurstCriterion',20,'WindowCriterion',0.25,'BurstRejection','on','Distance','Euclidian','WindowCriterionTolerances',[-Inf 7] );
+        EEG = eeg_checkset(EEG);
+
+        % Save #3 - Dataset after preprocessing
+        if (ismember(3, savepoint))
+            EEG = pop_saveset(EEG, 'filename', [EEG.setname '_3_prep.set'], 'filepath', subjectOutputPath);
+        end
     end
-    %% - Step 3: Run Independent component analysis (ICA)
+    
+    %% - Step 4: Run Independent component analysis (ICA)
     % Run ICA
-    fprintf('\n\n--- Step 3: Running ICA ---\n\n');
-    EEG = pop_runica(EEG, 'icatype', 'runica', 'extended', 1, 'interrupt', 'off');
-    EEG = eeg_checkset(EEG);
-    
-	% Save #3 - Dataset with ICA weights
-    if (ismember(3, savepoint))
-        EEG = pop_saveset(EEG, 'filename', [EEG.setname '_3_ica.set'], 'filepath', subjectOutputPath);
+    if (ismember(4, runSteps))
+        fprintf('\n--- Step 4: Run Independent component analysis (ICA) [subject %d] ---\n', n);
+        EEG = pop_runica(EEG, 'icatype', 'runica', 'extended', 1, 'interrupt', 'off');
+        EEG = eeg_checkset(EEG);
+
+        % Save #4 - Dataset with ICA weights
+        if (ismember(4, savepoint))
+            EEG = pop_saveset(EEG, 'filename', [EEG.setname '_4_ica.set'], 'filepath', subjectOutputPath);
+        end
     end
-    %% - Step 4: Run ICLabel to identify artifact sources: 'Brain'  'Muscle'  'Eye'  'Heart'  'Line Noise'  'Channel Noise'  'Other', with probability
-    % Run ICLabel (Pion-Tonachini et al., 2019)
-    fprintf('\n\n--- Step 4: Running ICLabel ---\n\n');
-    EEG = iclabel(EEG, 'default');
-    EEG = eeg_checkset(EEG);
     
-    %% - Step 5: Remove ICA artifacts by thresholds defined above
+    %% - Step 5: Run ICLabel to identify artifact sources: 'Brain' 'Muscle' 'Eye' 'Heart' 'Line Noise' 'Channel Noise' 'Other', with configured probability
+    % Run ICLabel (Pion-Tonachini et al., 2019)
+    if (ismember(5, runSteps))
+        fprintf('\n--- Step 5: Running ICLabel [subject %d] ---\n', n);
+        EEG = iclabel(EEG, 'default');
+        EEG = eeg_checkset(EEG);
+    end
+    
+    %% - Step 6: Remove ICA artifacts by thresholds defined above
     % Remove ICLabel artifacts
-    EEG = pop_icflag(EEG, icflagThresh);
-    EEG = eeg_checkset(EEG);
+    if (ismember(6, runSteps))
+        fprintf('\n--- Step 6: Remove ICA artifacts by thresholds defined above [subject %d] ---\n', n);
+        EEG = pop_icflag(EEG, icflagThresh);
+        EEG = eeg_checkset(EEG);
+    end
     
     % Split into events
     % events
@@ -187,12 +234,12 @@ for n=1:numOfSubjects
     %                       'addlength', 0.25, ...
     %                       'taper', 'hamming');
      
-    %% - Step 6: Run SIFT pipeline
+    %% - Step 7: Run SIFT pipeline
     
-	% Save #4 - Dataset with model and connectivity
-    if (ismember(4, savepoint))
-        EEG = pop_saveset(EEG, 'filename', [EEG.setname '_4_final.set'], 'filepath', subjectOutputPath);
+	% Save #5 - Dataset with model and connectivity
+    if (ismember(5, savepoint))
+        EEG = pop_saveset(EEG, 'filename', [EEG.setname '_5_final.set'], 'filepath', subjectOutputPath);
     end
-    [ALLEEG EEG CURRENTSET] = eeg_store(ALLEEG, EEG, n); 
+    %[ALLEEG EEG CURRENTSET] = eeg_store(ALLEEG, EEG, n); 
 end
 eeglab redraw
