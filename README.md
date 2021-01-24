@@ -72,6 +72,34 @@ Raw data was captured by BrainVision data files includes eeg, vhdr, vmrk
 - A binary data file (.eeg) containing the voltage values of the EEG
 
 
+% Details about how bad channel removal works
+% -------------------------------------------
+% In the output reports you can view:
+%    noisyChannels               - list of identified bad channel numbers
+%    badChannelsFromCorrelation  - list of bad channels identified by correlation
+%    badChannelsFromDeviation    - list of bad channels identified by amplitude
+%    badChannelsFromHFNoise      - list of bad channels identified by SNR
+%    badChannelsFromRansac       - list of channels identified by ransac
+% Method 1: too low or high amplitude. If the z score of robust
+%           channel deviation falls below robustDeviationThreshold, the channel is
+%           considered to be bad.
+% Method 2: too low an SNR. If the z score of estimate of signal above
+%           50 Hz to that below 50 Hz above highFrequencyNoiseThreshold, the channel
+%           is considered to be bad.
+% Method 3: low correlation with other channels. Here correlationWindowSize is the window
+%           size over which the correlation is computed. If the maximum
+%           correlation of the channel to the other channels falls below
+%           correlationThreshold, the channel is considered bad in that window.
+%           If the fraction of bad correlation windows for a channel
+%           exceeds badTimeThreshold, the channel is marked as bad.
+%
+% After the channels from methods 2 and 3 are removed, method 4 is
+% computed on the remaining signals
+%
+% Method 4: each channel is predicted using ransac interpolation based
+%           on a ransac fraction of the channels. If the correlation of
+%           the prediction to the actual behavior is too low for too
+%           long, the channel is marked as bad.
 
 ## Citations and references
 ### Automagic - Standardized Preprocessing of Big EEG Data
