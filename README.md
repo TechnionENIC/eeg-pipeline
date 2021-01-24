@@ -3,10 +3,15 @@ EEG Pipelines
 
 This project purpose is to suggest an infrastructure for processing, modeling and analyzing raw EEG data relying on MatLab and EEGLAB.
 
-To start the process run:
-`runPipeline`
+To start the app GUI run:
+`app1.mlapp`
 
-from Matlab termianl.
+![alt text](static/ICLabel.png)
+![alt text](static/ica.png)
+![alt text](static/inspect.png)
+![alt text](static/prep.png)
+![alt text](static/basic.png)
+
 
 EEG analysing pipeline tutorial
 -------------------------------
