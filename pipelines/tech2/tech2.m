@@ -12,7 +12,7 @@ rawDataFiles = dir(RunPipelineConfiguration('dataDir'));
 
 % Iterate over entire subject data (probably worth testing it on 2 before running on all subjects)
 numOfSubjects = 2;
-if (RunPipelineConfiguration('singlesubject') == "off")
+if (RunPipelineConfiguration('singlesubject') == "Off")
     numOfSubjects = length(rawDataFiles); 
 end
     
@@ -22,7 +22,7 @@ parfor n=1:numOfSubjects
     fprintf('\n--- Processing subject %d (%s) ---\n', n, filename);
         
     %% - Step 1: Importing raw data or .set data structure for each subject
-    if (ismember(1, RunPipelineConfiguration('runSteps')))
+    if (contains(RunPipelineConfiguration('runSteps'), "1"))
         fprintf('\n--- Step 1: Building EEGLab data structure [subject %d] ---\n', n);
         % Convert & load by specified datastructure protocol into EEGLAB
         switch RunPipelineConfiguration('dataprotocol')
@@ -47,7 +47,7 @@ parfor n=1:numOfSubjects
         mkdir(subjectOutputPath);
 
         % Save #1 - raw data as EEG dataset structure
-        if (ismember(1, RunPipelineConfiguration('savepoint')))
+        if (contains(RunPipelineConfiguration('savepoint'), "1"))
             EEG = pop_saveset(EEG, 'filename', [EEG.setname '.set'], 'filepath', subjectOutputPath);
         end
         %[ALLEEG EEG CURRENTSET] = eeg_store(ALLEEG, EEG, n); 
@@ -61,14 +61,14 @@ parfor n=1:numOfSubjects
     end
     
     %% - Step 2: Highpass & Lowpass filter
-    if (ismember(2, RunPipelineConfiguration('runSteps')))
+    if (contains(RunPipelineConfiguration('runSteps'), "2"))
         fprintf('\n--- Step 2: Highpass & Lowpass filter [subject %d] ---\n', n);
         % Highpass filter 0.1hz
         EEG = pop_eegfiltnew(EEG, [], RunPipelineConfiguration('highpass'), [], false, [], 0);
         % Lowpass filter 50hz
         EEG = pop_eegfiltnew(EEG, [], RunPipelineConfiguration('lowpass'), [], false, [], 0);
         % Save #2 - raw data as EEG dataset structure
-        if (ismember(2, RunPipelineConfiguration('savepoint')))
+        if (contains(RunPipelineConfiguration('savepoint'), "2"))
             EEG = pop_saveset(EEG, 'filename', [EEG.setname '_2_hlpf.set'], 'filepath', subjectOutputPath);
         end
     end
@@ -88,7 +88,7 @@ parfor n=1:numOfSubjects
     % snapshot image send to Michal, also before and after cutting time artifacts, run it beofre ICA (see suggested pipeline of EEGLAB) 
     % 
     
-    if (ismember(3, RunPipelineConfiguration('runSteps')))
+    if (contains(RunPipelineConfiguration('runSteps'), "3"))
         fprintf('\n--- Step 3: Clean raw data using PREP preprocessing pipeline [subject %d] ---\n', n);
         reportHTMLOutputPath = fullfile(RunPipelineConfiguration('outputDir'), RunPipelineConfiguration('studyName'), EEG.setname, strcat(EEG.setname,'.html'));
         reportPDFOutputPath = fullfile(RunPipelineConfiguration('outputDir'), RunPipelineConfiguration('studyName'), EEG.setname, strcat(EEG.setname,'.pdf'));
@@ -112,7 +112,7 @@ parfor n=1:numOfSubjects
         EEG = eeg_checkset(EEG);
 
         % Save #3 - Dataset after preprocessing
-        if (ismember(3, RunPipelineConfiguration('savepoint')))
+        if (contains(RunPipelineConfiguration('savepoint'), "3"))
             EEG = pop_saveset(EEG, 'filename', [EEG.setname '_3_prep.set'], 'filepath', subjectOutputPath);
         end
     end
@@ -152,20 +152,20 @@ parfor n=1:numOfSubjects
     
     %% - Step 4: Run Independent component analysis (ICA)
     % Run ICA
-    if (ismember(4, RunPipelineConfiguration('runSteps')))
+    if (contains(RunPipelineConfiguration('runSteps'), "4"))
         fprintf('\n--- Step 4: Run Independent component analysis (ICA) [subject %d] ---\n', n);
         EEG = pop_runica(EEG, 'icatype', 'runica', 'extended', 1, 'interrupt', 'off');
         EEG = eeg_checkset(EEG);
 
         % Save #4 - Dataset with ICA weights
-        if (ismember(4, RunPipelineConfiguration('savepoint')))
+        if (contains(RunPipelineConfiguration('savepoint'), "4"))
             EEG = pop_saveset(EEG, 'filename', [EEG.setname '_4_ica.set'], 'filepath', subjectOutputPath);
         end
     end
     
     %% - Step 5: Run ICLabel to identify artifact sources: 'Brain' 'Muscle' 'Eye' 'Heart' 'Line Noise' 'Channel Noise' 'Other', with configured probability
     % Run ICLabel (Pion-Tonachini et al., 2019)
-    if (ismember(5, RunPipelineConfiguration('runSteps')))
+    if (contains(RunPipelineConfiguration('runSteps'), "5"))
         fprintf('\n--- Step 5: Running ICLabel [subject %d] ---\n', n);
         EEG = iclabel(EEG, 'default');
         EEG = eeg_checkset(EEG);
@@ -173,9 +173,11 @@ parfor n=1:numOfSubjects
     
     %% - Step 6: Remove ICA artifacts by thresholds defined above
     % Remove ICLabel artifacts
-    if (ismember(6, RunPipelineConfiguration('runSteps')))
+    if (contains(RunPipelineConfiguration('runSteps'), "6"))
         fprintf('\n--- Step 6: Remove ICA artifacts by thresholds defined above [subject %d] ---\n', n);
-        EEG = pop_icflag(EEG, RunPipelineConfiguration('icflagThresh'));
+        icflagThresh = [0 0;0 0; RunPipelineConfiguration("eye") 1; 0 0; 0 0; 0 0; 0 0];
+      
+        EEG = pop_icflag(EEG, icflagThresh);
         EEG = eeg_checkset(EEG);
     end
     
@@ -190,7 +192,7 @@ parfor n=1:numOfSubjects
     % Set the following frequency bands: delta=1-4, theta=4-8, alpha=8-13, beta=13-30, gamma=30-80.
     
 	% Save #5 - Dataset with model and connectivity
-    if (ismember(5, RunPipelineConfiguration('savepoint')))
+    if (contains(RunPipelineConfiguration('savepoint'), "5"))
         EEG = pop_saveset(EEG, 'filename', [EEG.setname '_5_final.set'], 'filepath', subjectOutputPath);
     end
     %[ALLEEG EEG CURRENTSET] = eeg_store(ALLEEG, EEG, n); 
