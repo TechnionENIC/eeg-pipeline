@@ -10,13 +10,13 @@ requiredPlugins = ['ICLabel' 'PrepPipeline0.55.4' 'SIFT1.52', 'dipfit3.6'];
 
 switch RunPipelineConfiguration('dataprotocol')
     case 'brainVision'
-        rawDataFiles = dir(RunPipelineConfiguration('dataDir') + "\**\*.vhdr");
+        rawDataFiles = dir(RunPipelineConfiguration('dataDir') + "/**/*.vhdr");
         suffixLength = 5;
     case 'EEGLab set'    
-        rawDataFiles = dir(RunPipelineConfiguration('dataDir') + "\**\*.set"); 
+        rawDataFiles = dir(RunPipelineConfiguration('dataDir') + "/**/*.set"); 
         suffixLength = 4;
     case 'emotive'
-        rawDataFiles = dir(RunPipelineConfiguration('dataDir') + "\**\*.edf");
+        rawDataFiles = dir(RunPipelineConfiguration('dataDir') + "/**/*.edf");
         suffixLength = 4;
 end
 
@@ -30,7 +30,7 @@ if (RunPipelineConfiguration('singlesubject') == "Off")
 end
     
 fprintf('\n--- Start processing %d subjects ---\n', numOfSubjects);
-parfor n=1:(numOfSubjects+1)
+parfor n=0:numOfSubjects
     filename = rawDataFiles(n).name;
     fprintf('\n--- Processing subject %d (%s) ---\n', n, filename);
         
