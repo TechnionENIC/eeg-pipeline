@@ -30,7 +30,8 @@ if (RunPipelineConfiguration('singlesubject') == "Off")
 end
     
 fprintf('\n--- Start processing %d subjects ---\n', numOfSubjects);
-parfor n=1:numOfSubjects
+% parfor n=1:numOfSubjects
+for n=1:numOfSubjects
     filename = rawDataFiles(n).name;
     fprintf('\n--- Processing subject %d (%s) ---\n', n, filename);
         
@@ -48,7 +49,7 @@ parfor n=1:numOfSubjects
         end
         
         % Load auto channel location
-        EEG = pop_chanedit(EEG, 'lookup', channelFile, 'load', []);
+        EEG = pop_chanedit(EEG, 'lookup', RunPipelineConfiguration('channelFile'), 'load', []);
 
         % Remove file extention from file name
         setname = filename(1:end-suffixLength);
