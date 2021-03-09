@@ -3,12 +3,12 @@ eeglabRoot = fileparts(which('eeglab'));
 pipelineSteps = ['1 BIDS Data', '2 HLPF', '3 PREP', '4 ICA', '5 IClabel', '6 Clean Label'];
 % Basic tab configurtaion
 studyName = 'mindfulness';
-dataDir = '../../data'; % Diretory path of EEG data files
+dataDir = fullfile(pwd, 'data');  % Diretory path of EEG data files
 dataprotocol = 'brainVision';     % Protocol to treat EEG data
 singlesubject = 'Off';            % Run pipeline on single subject
 outputDir = fullfile(pwd, 'output'); % Directory Path of output save BIDS (Brain Imaging Data Structure) file structure
 % This channel location is compatiable with our 64Ch actiCAP snap AP-64 layout of easycap
-channelFile = fullfile(eeglabRoot, 'plugins\dipfit3.6\standard_BESA\standard-10-5-cap385.elp'); % Channel location file path
+channelFile = fullfile(eeglabRoot, ['plugins' filesep 'dipfit' filesep 'standard_BESA' filesep 'standard-10-5-cap385.elp']); % Channel location file path
 runSteps = pipelineSteps;         % Steps to run
 savepoint = pipelineSteps;        % Save after those steps
 plotsave = pipelineSteps;         % Plot data after those steps
@@ -19,8 +19,12 @@ runChannels = [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16];
 % Harmonic line frequencies to be removed
 lineFrequencies = [50,100,150,200]; % IL/EU
 % Filter
-lowpass = 50;                          % Lowpass filter 50Hz
-highpass = 0.1;                        % Highpass filter 0.1HZ
+lowpass = 0.3;                          % Lowpass filter Hz
+highpass = 45;                          % Highpass filter Hz
+notchlow = 47.5;                        % Notch low Hz
+notchhigh = 52.5;                       % Notch high Hz
+revfilt = 1; 
+
 detrendCutoff = 1;
 detrendStepSize = 0.02;
 % Bad channel
@@ -43,10 +47,10 @@ channel = 0;
 other = 0;
 
 keysConf = {'studyName', 'dataprotocol', 'singlesubject', 'plotsave', 'dataDir', 'channelFile', 'outputDir', 'runSteps', 'savepoint', 'lineFrequencies', ...
-            'lowpass', 'highpass', 'detrendCutoff', 'detrendStepSize', 'robustDeviationThreshold', 'correlationThreshold', 'badTimeThreshold', 'highFrequencyNoiseThreshold', ...
+            'lowpass', 'highpass','notchlow','notchhigh', 'revfilt', 'detrendCutoff', 'detrendStepSize', 'robustDeviationThreshold', 'correlationThreshold', 'badTimeThreshold', 'highFrequencyNoiseThreshold', ...
             'ransacCorrelationThreshold', 'brain', 'muscle', 'eye', 'heart', 'line', 'channel', 'other', 'runChannels'};
 valuesConf = {studyName, dataprotocol, singlesubject, plotsave, dataDir, channelFile, outputDir, runSteps, savepoint, lineFrequencies, ...
-            lowpass, highpass, detrendCutoff, detrendStepSize, robustDeviationThreshold, correlationThreshold, badTimeThreshold, highFrequencyNoiseThreshold, ...
+            lowpass, highpass, notchlow ,notchhigh, revfilt, detrendCutoff, detrendStepSize, robustDeviationThreshold, correlationThreshold, badTimeThreshold, highFrequencyNoiseThreshold, ...
             ransacCorrelationThreshold, brain, muscle, eye, heart, line, channel, other, runChannels};
         
 RunPipelineConfiguration = containers.Map(keysConf, valuesConf);   

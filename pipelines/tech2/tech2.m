@@ -10,13 +10,13 @@ requiredPlugins = ['ICLabel' 'PrepPipeline0.55.4' 'SIFT1.52', 'dipfit3.6'];
 
 switch RunPipelineConfiguration('dataprotocol')
     case 'brainVision'
-        rawDataFiles = dir(RunPipelineConfiguration('dataDir') + "\**\*.vhdr");
+        rawDataFiles = dir(RunPipelineConfiguration('dataDir') + "/**/*.vhdr");
         suffixLength = 5;
     case 'EEGLab set'    
-        rawDataFiles = dir(RunPipelineConfiguration('dataDir') + "\**\*.set"); 
+        rawDataFiles = dir(RunPipelineConfiguration('dataDir') + "/**/*.set"); 
         suffixLength = 4;
     case 'emotive'
-        rawDataFiles = dir(RunPipelineConfiguration('dataDir') + "\**\*.edf");
+        rawDataFiles = dir(RunPipelineConfiguration('dataDir') + "/**/*.edf");
         suffixLength = 4;
 end
 
@@ -39,13 +39,14 @@ for n=1:numOfSubjects
     if any(contains(RunPipelineConfiguration('runSteps'), "1"))
         fprintf('\n--- Step 1: Building EEGLab data structure [subject %d] ---\n', n);
         % Convert & load by specified datastructure protocol into EEGLAB
+        pathRawDataFile = [rawDataFiles(n).folder filesep filename];
         switch RunPipelineConfiguration('dataprotocol')
             case 'brainVision'
-                EEG = pop_loadbv(rawDataFiles(n).folder, filename);
+                EEG = pop_loadbv(pathRawDataFile);
             case 'EEGLab set'    
-                EEG = pop_loadset(rawDataFiles(n).folder, filename);
+                EEG = pop_loadset(pathRawDataFile);
             case 'emotive'
-                EEG = pop_biosig(rawDataFiles(n).folder, filename);
+                EEG = pop_biosig(pathRawDataFile);
         end
         
         % Load auto channel location
@@ -63,7 +64,7 @@ for n=1:numOfSubjects
         if any(contains(RunPipelineConfiguration('savepoint'), "1"))
             EEG = pop_saveset(EEG, 'filename', [EEG.setname '.set'], 'filepath', subjectOutputPath);
             if any(contains(RunPipelineConfiguration('plotsave'), "1"))
-                pop_eegplot( EEG, 1, 1, 1);
+                pop_eegplot(EEG, 1, 1, 1);
             end
         end
         %[ALLEEG EEG CURRENTSET] = eeg_store(ALLEEG, EEG, n); 
@@ -72,15 +73,23 @@ for n=1:numOfSubjects
     %% - Step 2: Highpass & Lowpass filter
     if any(contains(RunPipelineConfiguration('runSteps'), "2"))
         fprintf('\n--- Step 2: Highpass & Lowpass filter [subject %d] ---\n', n);
-        % Highpass filter 0.1hz
-        EEG = pop_eegfiltnew(EEG, [], RunPipelineConfiguration('highpass'), [], false, [], 0);
-        % Lowpass filter 50hz
-        EEG = pop_eegfiltnew(EEG, [], RunPipelineConfiguration('lowpass'), [], false, [], 0);
+        % Highpass filter Hz
+        EEG = pop_eegfiltnew(EEG, 'locutoff', 0.3);;
+        EEG = eeg_checkset( EEG );
+
+        % Notch filter Hz
+        EEG = pop_eegfiltnew(EEG, 'locutoff', 47.5, 'hicutoff', 52.5, 'revfilt',1);
+        EEG = eeg_checkset( EEG );
+
+        % Lowpass filter Hz
+        EEG = pop_eegfiltnew(EEG, 'hicutoff', 45);
+        EEG = eeg_checkset( EEG );
+
         % Save #2 - raw data as EEG dataset structure
         if any(contains(RunPipelineConfiguration('savepoint'), "2"))
             EEG = pop_saveset(EEG, 'filename', [EEG.setname '_2_hlpf.set'], 'filepath', subjectOutputPath);
             if any(contains(RunPipelineConfiguration('plotsave'), "2"))
-                pop_eegplot( EEG, 1, 1, 1);
+                pop_eegplot(EEG, 1, 1, 1);
             end
         end
     end
@@ -101,8 +110,8 @@ for n=1:numOfSubjects
     
     if any(contains(RunPipelineConfiguration('runSteps'), "3"))
         fprintf('\n--- Step 3: Clean raw data using PREP preprocessing pipeline [subject %d] ---\n', n);
-        reportHTMLOutputPath = fullfile(RunPipelineConfiguration('outputDir'), RunPipelineConfiguration('studyName'), EEG.setname, strcat(EEG.setname,'.html'));
-        reportPDFOutputPath = fullfile(RunPipelineConfiguration('outputDir'), RunPipelineConfiguration('studyName'), EEG.setname, strcat(EEG.setname,'.pdf'));
+        reportHTMLOutputPath = fullfile(RunPipelineConfiguration('outputDir'), RunPipelineConfiguration('studyName'), EEG.setname, 'prep.html');
+        reportPDFOutputPath = fullfile(RunPipelineConfiguration('outputDir'), RunPipelineConfiguration('studyName'), EEG.setname, 'prep.pdf');
         EEG = pop_prepPipeline(EEG, struct('ignoreBoundaryEvents', true, ...
                                       'detrendCutoff', RunPipelineConfiguration('detrendCutoff'), ...
                                       'detrendStepSize', RunPipelineConfiguration('detrendStepSize'), ...
@@ -175,7 +184,7 @@ for n=1:numOfSubjects
         if any(contains(RunPipelineConfiguration('savepoint'), "4"))
             EEG = pop_saveset(EEG, 'filename', [EEG.setname '_4_ica.set'], 'filepath', subjectOutputPath);
             if any(contains(RunPipelineConfiguration('plotsave'), "4"))
-                pop_eegplot( EEG, 1, 1, 1);
+                pop_eegplot(EEG, 1, 1, 1);
             end
         end
     end
@@ -191,7 +200,7 @@ for n=1:numOfSubjects
         if any(contains(RunPipelineConfiguration('savepoint'), "5"))
             EEG = pop_saveset(EEG, 'filename', [EEG.setname '_5_iclabel.set'], 'filepath', subjectOutputPath);
             if any(contains(RunPipelineConfiguration('plotsave'), "5"))
-                pop_eegplot( EEG, 1, 1, 1);
+                pop_eegplot(EEG, 1, 1, 1);
             end
         end
     end
@@ -209,7 +218,7 @@ for n=1:numOfSubjects
         if any(contains(RunPipelineConfiguration('savepoint'), "6"))
             EEG = pop_saveset(EEG, 'filename', [EEG.setname '_6_remove_iclabel.set'], 'filepath', subjectOutputPath);
             if any(contains(RunPipelineConfiguration('plotsave'), "6"))
-                pop_eegplot( EEG, 1, 1, 1);
+                pop_eegplot(EEG, 1, 1, 1);
             end
         end
     end
@@ -228,9 +237,8 @@ for n=1:numOfSubjects
     if any(contains(RunPipelineConfiguration('savepoint'), "5"))
         EEG = pop_saveset(EEG, 'filename', [EEG.setname '_5_final.set'], 'filepath', subjectOutputPath);
         if any(contains(RunPipelineConfiguration('plotsave'), "5"))
-                pop_eegplot( EEG, 1, 1, 1);
+                pop_eegplot(EEG, 1, 1, 1);
         end
     end
     %[ALLEEG EEG CURRENTSET] = eeg_store(ALLEEG, EEG, n); 
 end
-eeglab redraw

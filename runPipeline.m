@@ -17,4 +17,4 @@ end
 selectedPipelineNum = input('Enter number of pipeline to run: ');
 selectPipelineName = piplinesFiles(selectedPipelineNum).name;
 fprintf('Running %s pipeline \n', selectPipelineName);
-run(['pipelines/' selectPipelineName '/' selectPipelineName]);
+run(['pipelines' filesep selectPipelineName filesep selectPipelineName]);
