@@ -67,23 +67,22 @@ for n=1:numOfSubjects
                 pop_eegplot(EEG, 1, 1, 1);
             end
         end
-        %[ALLEEG EEG CURRENTSET] = eeg_store(ALLEEG, EEG, n); 
     end
     
     %% - Step 2: Highpass & Lowpass filter
     if any(contains(RunPipelineConfiguration('runSteps'), "2"))
         fprintf('\n--- Step 2: Highpass & Lowpass filter [subject %d] ---\n', n);
         % Highpass filter Hz
-        EEG = pop_eegfiltnew(EEG, 'locutoff', 0.3);;
-        EEG = eeg_checkset( EEG );
+        EEG = pop_eegfiltnew(EEG, 'locutoff', RunPipelineConfiguration("lowpass"));
+        EEG = eeg_checkset(EEG);
 
         % Notch filter Hz
-        EEG = pop_eegfiltnew(EEG, 'locutoff', 47.5, 'hicutoff', 52.5, 'revfilt',1);
-        EEG = eeg_checkset( EEG );
+        EEG = pop_eegfiltnew(EEG, 'locutoff', RunPipelineConfiguration("notchlow"), 'hicutoff', RunPipelineConfiguration("notchhigh"), 'revfilt',RunPipelineConfiguration("revfilt"));
+        EEG = eeg_checkset(EEG);
 
         % Lowpass filter Hz
-        EEG = pop_eegfiltnew(EEG, 'hicutoff', 45);
-        EEG = eeg_checkset( EEG );
+        EEG = pop_eegfiltnew(EEG, 'hicutoff', RunPipelineConfiguration("highpass"));
+        EEG = eeg_checkset(EEG);
 
         % Save #2 - raw data as EEG dataset structure
         if any(contains(RunPipelineConfiguration('savepoint'), "2"))
@@ -104,10 +103,7 @@ for n=1:numOfSubjects
     % 5. Detect and interpolate bad channels relative to this reference
     % 6. Produce reports if desired
     % 7. Post process if desired
-    
-    % TODO: create another save point after/before average - one channel
-    % snapshot image send to Michal, also before and after cutting time artifacts, run it beofre ICA (see suggested pipeline of EEGLAB) 
-    
+ 
     if any(contains(RunPipelineConfiguration('runSteps'), "3"))
         fprintf('\n--- Step 3: Clean raw data using PREP preprocessing pipeline [subject %d] ---\n', n);
         reportHTMLOutputPath = fullfile(RunPipelineConfiguration('outputDir'), RunPipelineConfiguration('studyName'), EEG.setname, 'prep.html');
@@ -127,8 +123,37 @@ for n=1:numOfSubjects
                                       'keepFiltered', true, ...
                                       'removeInterpolatedChannels', false));
 
-        % Alternative preprocessing option with "clear_rawdata"                          
-        % EEG = pop_clean_rawdata(EEG, 'FlatlineCriterion',5,'ChannelCriterion',0.8,'LineNoiseCriterion',4,'Highpass','off','BurstCriterion',20,'WindowCriterion',0.25,'BurstRejection','on','Distance','Euclidian','WindowCriterionTolerances',[-Inf 7] );
+        % Alternative preprocessing option with "cleanLineNoise "                          
+%         signal      = struct('data', EEG.data, 'srate', EEG.srate);
+%         lineNoiseIn = struct('lineNoiseMethod', 'clean', ...
+%                              'lineNoiseChannels', 1:EEG.nbchan,...
+%                              'Fs', EEG.srate, ...
+%                              'lineFrequencies', [60 120 180 240],...
+%                              'p', 0.01, ...
+%                              'fScanBandWidth', 2, ...
+%                              'taperBandWidth', 2, ...
+%                              'taperWindowSize', 4, ...
+%                              'taperWindowStep', 1, ...
+%                              'tau', 100, ...
+%                              'pad', 2, ...
+%                              'fPassBand', [0 EEG.srate/2], ...
+%                              'maximumIterations', 10);
+%         [clnOutput, lineNoiseOut] = cleanLineNoise(signal, lineNoiseIn);
+%         EEG.data = clnOutput.data;   
+    % Step 7: Apply clean_rawdata() to reject bad channels and correct continuous data using Artifact Subspace Reconstruction (ASR). 
+    % Note 'availableRAM_GB' is for clean_rawdata1.10. For any newer version, it will cause error.
+%     originalEEG = EEG;
+%     EEG = clean_rawdata(EEG, 5, -1, 0.85, 4, 20, 0.25, 'availableRAM_GB', 8);
+%  
+%     % Step 8: Interpolate all the removed channels
+%     EEG = pop_interp(EEG, originalEEG.chanlocs, 'spherical');
+    % Step 9: Re-reference the data to average
+%     EEG.nbchan = EEG.nbchan+1;
+%     EEG.data(end+1,:) = zeros(1, EEG.pnts);
+%     EEG.chanlocs(1,EEG.nbchan).labels = 'initialReference';
+%     EEG = pop_reref(EEG, []);
+%     EEG = pop_select( EEG,'nochannel',{'initialReference'});
+%  
         EEG = eeg_checkset(EEG);
 
         % Save #3 - Dataset after preprocessing
@@ -140,38 +165,17 @@ for n=1:numOfSubjects
         end
     end
     
-    %  'elecrange'   - [integer array] electrode indices {Default: all electrodes} 
-%  'epochlength' - [float] epoch length in seconds {Default: 0.5 s}
-%  'overlap'     - [float] epoch overlap in seconds {Default: 0.25 s}
-%  'freqlimit'   - [min max] frequency range too consider for thresholding
-%                  Default is [35 128] Hz.
-%  'threshold'   - [float] frequency upper threshold in dB {Default: 10}
-%  'contiguous'  - [integer] number of contiguous epochs necessary to 
-%                  label a region as artifactual {Default: 4}
-%  'addlength'   - [float] once a region of contiguous epochs has been labeled
-%                  as artifact, additional trailing neighboring regions on
-%                  each side may also be added {Default: 0.25}
-%  'eegplot'     - ['on'|'off'] plot rejected portions of data in a eegplot
-%                  window. Default is 'off'.
-%  'onlyreturnselection'  - ['on'|'off'] this option when set to 'on' only
-%                  return the selected regions and does not remove them 
-%                  from the datasets. This allow to perform quick
-%                  optimization of the rejected portions of data.
-%  'precompstruct' - [struct] structure containing precomputed spectrum (see
-%                  Outputs) to be used instead of computing the spectrum.
-%  'verbose'       - ['on'|'off'] display information. Default is 'off'.
-%  'taper'         - ['none'|'hamming'] taper to use before FFT. Default is
-%                    'none' for backward compatibility but 'hamming' is
-%                    recommended.
+    %% - Step X: Automated reject sectors
     % The command below does the automated rejection (the pop_select command after that includes manual editing)
-    %EEG = pop_rejcont(EEG, 'elecrange', [1:64] , ...
-    %                       'freqlimit', [20 40] , ...
-    %                       'threshold', 10, ... 
-    %                       'epochlength', 0.5, ...
-    %                       'contiguous', 4, ...
-    %                       'addlength', 0.25, ...
-    %                       'taper', 'hamming');
-    % EEG = pop_select( EEG, 'nopoint',[321 480;3489 3936;4289 4608;7713 7904;13505 13664;26561 26816;27201 27360;27553 27840;28033 28544]);
+    if (contains(RunPipelineConfiguration('AutomaticrejectSwitch'), "On"))
+          fprintf('\n--- Step 4: Run Independent component analysis (ICA) [subject %d] ---\n', n);
+        % Using new ASR & Clean_rawdata
+        EEG = pop_clean_rawdata(EEG, 'FlatlineCriterion',5,'ChannelCriterion',0.8,'LineNoiseCriterion',4,'Highpass','off','BurstCriterion',20,'WindowCriterion',0.25,'BurstRejection','on','Distance','Euclidian','WindowCriterionTolerances',[-Inf 7] );
+        % Using old eeglab method
+        %EEG = pop_rejcont(EEG, 'taper', 'hamming');
+        %EEG.rejected_samples = rejected;
+        EEG = eeg_checkset( EEG );
+    end
     
     %% - Step 4: Run Independent component analysis (ICA)
     % Run ICA
@@ -223,13 +227,27 @@ for n=1:numOfSubjects
         end
     end
     
-    %% - Step 7: Run SIFT pipeline
-    
     % Translate to bands
     %figure; pop_spectopo(EEG, 1, [0  252048], 'EEG' , 'percent', 50, 'freq', [6 10 22], 'freqrange', [2 25], 'electrodes', 'on');
-    
+
+[spectra,freqs] = spectopo(EEG.data, 0, EEG.srate);
+% 
+% % delta=1-4, theta=4-8, alpha=8-13, beta=13-30, gamma=30-80
+% deltaIdx = find(freqs>1 & freqs<4);
+% thetaIdx = find(freqs>4 & freqs<8);
+% alphaIdx = find(freqs>8 & freqs<13);
+% betaIdx  = find(freqs>13 & freqs<30);
+% gammaIdx = find(freqs>30 & freqs<80);
+% 
+% % compute absolute power
+% deltaPower = mean(10.^(spectra(deltaIdx)/10));
+% thetaPower = mean(10.^(spectra(thetaIdx)/10));
+% alphaPower = mean(10.^(spectra(alphaIdx)/10));
+% betaPower  = mean(10.^(spectra(betaIdx)/10));
+% gammaPower = mean(10.^(spectra(gammaIdx)/10));
+% %%%%%%%%%%%%%%%%%
     % This example Matlab code shows how to compute power spectrum of epoched data, channel 2.
-    %[spectra,freqs] = spectopo(EEG.data(2,:,:), 0, EEG.srate);
+    %[spectra,freqs] = spectopo(EEG.data, 0, EEG.srate);
 
     % Set the following frequency bands: delta=1-4, theta=4-8, alpha=8-13, beta=13-30, gamma=30-80.
     
@@ -240,5 +258,7 @@ for n=1:numOfSubjects
                 pop_eegplot(EEG, 1, 1, 1);
         end
     end
+    
+    %% - Step 7: Run SIFT pipeline
     %[ALLEEG EEG CURRENTSET] = eeg_store(ALLEEG, EEG, n); 
 end

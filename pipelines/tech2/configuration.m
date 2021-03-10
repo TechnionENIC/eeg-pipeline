@@ -34,6 +34,8 @@ badTimeThreshold = 0.01;           %               cutoff fraction of bad corr w
 highFrequencyNoiseThreshold = 5;   % Noiseness - Unusual HF noise, z score cutoff for SNR (signal above 50 Hz)
 ransacCorrelationThreshold = 0.75; % Random sample consensus (RANSAC) cutoff correlation for abnormal wrt neighbors
 
+AutomaticrejectSwitch = "On";
+
 % Manually defind study events and action EEG.event.type, EEG.event.code
 events = {'S  3','Stimulus';'S  1','Stimulus';'R  1','Response';'S  3','Stimulus';'S  3','Stimulus';'R  1','Response';'S  4','Stimulus';'S 10','Stimulus';'S  3','Stimulus';'S  2','Stimulus';'R  1','Response';'S  3','Stimulus';'S 14','Stimulus';'S  4','Stimulus';'S 10','Stimulus';'S  3','Stimulus';'S 12','Stimulus'};
 
@@ -48,9 +50,33 @@ other = 0;
 
 keysConf = {'studyName', 'dataprotocol', 'singlesubject', 'plotsave', 'dataDir', 'channelFile', 'outputDir', 'runSteps', 'savepoint', 'lineFrequencies', ...
             'lowpass', 'highpass','notchlow','notchhigh', 'revfilt', 'detrendCutoff', 'detrendStepSize', 'robustDeviationThreshold', 'correlationThreshold', 'badTimeThreshold', 'highFrequencyNoiseThreshold', ...
-            'ransacCorrelationThreshold', 'brain', 'muscle', 'eye', 'heart', 'line', 'channel', 'other', 'runChannels'};
+            'ransacCorrelationThreshold', 'brain', 'muscle', 'eye', 'heart', 'line', 'channel', 'other', 'runChannels','AutomaticrejectSwitch'};
 valuesConf = {studyName, dataprotocol, singlesubject, plotsave, dataDir, channelFile, outputDir, runSteps, savepoint, lineFrequencies, ...
             lowpass, highpass, notchlow ,notchhigh, revfilt, detrendCutoff, detrendStepSize, robustDeviationThreshold, correlationThreshold, badTimeThreshold, highFrequencyNoiseThreshold, ...
-            ransacCorrelationThreshold, brain, muscle, eye, heart, line, channel, other, runChannels};
+            ransacCorrelationThreshold, brain, muscle, eye, heart, line, channel, other, runChannels, AutomaticrejectSwitch};
         
 RunPipelineConfiguration = containers.Map(keysConf, valuesConf);   
+
+    %  'elecrange'   - [integer array] electrode indices {Default: all electrodes} 
+%  'epochlength' - [float] epoch length in seconds {Default: 0.5 s}
+%  'overlap'     - [float] epoch overlap in seconds {Default: 0.25 s}
+%  'freqlimit'   - [min max] frequency range too consider for thresholding
+%                  Default is [35 128] Hz.
+%  'threshold'   - [float] frequency upper threshold in dB {Default: 10}
+%  'contiguous'  - [integer] number of contiguous epochs necessary to 
+%                  label a region as artifactual {Default: 4}
+%  'addlength'   - [float] once a region of contiguous epochs has been labeled
+%                  as artifact, additional trailing neighboring regions on
+%                  each side may also be added {Default: 0.25}
+%  'eegplot'     - ['on'|'off'] plot rejected portions of data in a eegplot
+%                  window. Default is 'off'.
+%  'onlyreturnselection'  - ['on'|'off'] this option when set to 'on' only
+%                  return the selected regions and does not remove them 
+%                  from the datasets. This allow to perform quick
+%                  optimization of the rejected portions of data.
+%  'precompstruct' - [struct] structure containing precomputed spectrum (see
+%                  Outputs) to be used instead of computing the spectrum.
+%  'verbose'       - ['on'|'off'] display information. Default is 'off'.
+%  'taper'         - ['none'|'hamming'] taper to use before FFT. Default is
+%                    'none' for backward compatibility but 'hamming' is
+%                    recommended.
