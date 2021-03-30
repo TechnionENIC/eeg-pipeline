@@ -42,7 +42,7 @@ for n=1:numOfSubjects
         pathRawDataFile = [rawDataFiles(n).folder filesep filename];
         switch RunPipelineConfiguration('dataprotocol')
             case 'brainVision'
-                EEG = pop_loadbv(pathRawDataFile);
+                EEG = pop_loadbv(rawDataFiles(n).folder, filename);
             case 'EEGLab set'    
                 EEG = pop_loadset(pathRawDataFile);
             case 'emotive'
@@ -67,6 +67,13 @@ for n=1:numOfSubjects
                 pop_eegplot(EEG, 1, 1, 1);
             end
         end
+    end
+    
+    if (EEG.srate > 250)
+       EEG = pop_resample(EEG, 200, 0.8, 0.4);
+       EEG = eeg_checkset(EEG);
+       fprintf('\n--- Performed downsampling from %s to 100 ---\n', EEG.srate);
+       EEG = pop_saveset(EEG, 'filename', [EEG.setname '_downsample.set'], 'filepath', subjectOutputPath);
     end
     
     %% - Step 2: Highpass & Lowpass filter
@@ -106,8 +113,7 @@ for n=1:numOfSubjects
  
     if any(contains(RunPipelineConfiguration('runSteps'), "3"))
         fprintf('\n--- Step 3: Clean raw data using PREP preprocessing pipeline [subject %d] ---\n', n);
-        reportHTMLOutputPath = fullfile(RunPipelineConfiguration('outputDir'), RunPipelineConfiguration('studyName'), EEG.setname, 'prep.html');
-        reportPDFOutputPath = fullfile(RunPipelineConfiguration('outputDir'), RunPipelineConfiguration('studyName'), EEG.setname, 'prep.pdf');
+        reportHTMLOutputPath = fullfile(subjectOutputPath, 'prep.html');
         EEG = pop_prepPipeline(EEG, struct('ignoreBoundaryEvents', true, ...
                                       'detrendCutoff', RunPipelineConfiguration('detrendCutoff'), ...
                                       'detrendStepSize', RunPipelineConfiguration('detrendStepSize'), ...
@@ -116,7 +122,6 @@ for n=1:numOfSubjects
                                       'highFrequencyNoiseThreshold', RunPipelineConfiguration('highFrequencyNoiseThreshold'), ... 
                                       'correlationThreshold', RunPipelineConfiguration('correlationThreshold'), ...
                                       'badTimeThreshold', RunPipelineConfiguration('badTimeThreshold'), ...
-                                      'sessionFilePath', reportPDFOutputPath, ...
                                       'summaryFilePath', reportHTMLOutputPath, ...
                                       'consoleFID', 1, ...
                                       'cleanupReference', true, ...

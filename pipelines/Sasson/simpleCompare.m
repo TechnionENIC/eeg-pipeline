@@ -1,8 +1,7 @@
 % Init pipeline with default configuration
-myDir = '/Users/dlevanon/Desktop/private/data/';
-file_name = 'happy.vhdr';
-filepath_before = '/Users/dlevanon/Desktop/private/data/output/sasson';
-filepath_after = '/Users/dlevanon/Desktop/private/data/output/sasson';
-cap385 = '/Users/dlevanon/Desktop/private/eeg-pipeline-main/eeglab2021.0/plugins/dipfit/standard_BESA/standard-10-5-cap385.elp';
+myDir = 'C:\Users\Dvirs\Desktop\eeg_sample_data\21032021';
+file_name = '1_LDT.vhdr';
+filepath_before = 'C:\Users\Dvirs\Desktop\eeg_sample_data\21032021\sasson';
+filepath_after = 'C:\Users\Dvirs\Desktop\eeg_sample_data\21032021\sasson';
+cap385 = 'C:\git\eeg\toolbox\eeglab2020_0\plugins\dipfit3.6\standard_BESA\standard-10-5-cap385.elp';
 run('preprocessing_63_func.m');
-resultFileToPlot('Sasson') = '/Users/dlevanon/Desktop/private/data/output/sasson/happy_2_hlpf.set';
