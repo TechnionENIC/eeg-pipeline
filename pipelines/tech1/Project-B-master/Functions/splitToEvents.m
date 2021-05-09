@@ -70,5 +70,3 @@ function [data_set_o] = splitToEvents(data_set, envolve_resting)
    end
 end
 
-% End result data_Set_0 = [eventStory, eventStory, eventControl...]
-% event has event.data = [truncated data for events]
