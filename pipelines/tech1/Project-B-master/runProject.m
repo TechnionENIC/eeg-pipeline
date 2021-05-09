@@ -1,33 +1,29 @@
-% clear; % clear workspace
-% close all;
-% clc; % clear command window
-% 
-% %% - Section 1: Importing the data
-% addpath(genpath('Functions'));
-% 
-% path_2017 = 'data\raw_stories_2017'
-% questionnaire_file_2017 = 'questionnaire_ans_2017.mat';
-% [ds_2017] = loadData(path_2017,questionnaire_file_2017);
-% 
-% path_2018 = 'data\raw_stories_2018'
-% questionnaire_file_2018 = 'questionnaire_ans_2018.mat';
-% [ds_2018] = loadData(path_2018,questionnaire_file_2018);
-% 
-% %% - Section 2: Preprocessing
-% % BPF parameters
-% low_cut_off = 4;
-% high_cut_off = 8;
-% 
-% [ds_2017_o] = preprocessing(ds_2017,low_cut_off,high_cut_off);
-% [ds_2018_o] = preprocessing(ds_2018,low_cut_off,high_cut_off);
-% 
-% 
-% %% - Section 3: Bad Channels removal
-% rem_channels_2017 = [1,5,10,13];
-% clean_ds_2017_o = removeChannels(ds_2017_o,rem_channels_2017);
-% 
-% rem_channels_2018 = [1,5,10,13];
-% clean_ds_2018_o = removeChannels(ds_2018_o,rem_channels_2018);
+clc;close all;clear;
+%% - Section 1: Importing the data
+addpath(genpath('Functions'));
+
+path_2017 = 'data\eeg_signals\2017\Raw'
+questionnaire_file_2017 = 'questionnaire_ans_2017.mat';
+[ds_2017] = loadData(path_2017,questionnaire_file_2017);
+
+path_2018 = 'data\eeg_signals\2018\raw'
+questionnaire_file_2018 = 'questionnaire_ans_2018.mat';
+[ds_2018] = loadData(path_2018,questionnaire_file_2018);
+
+%% - Section 2: Preprocessing
+% BPF parameters
+low_cut_off = 4; high_cut_off = 8; 
+[ds_2017_o] = preprocessing(ds_2017,low_cut_off,high_cut_off);
+[ds_2018_o] = preprocessing(ds_2018,low_cut_off,high_cut_off);
+
+%% Plot Spectugrams and eeg
+[to_be_removed_2017] = plotIterator(ds_2017_o,low_cut_off,high_cut_off)
+%% - Section 3: Bad Channels removal
+rem_channels_2017 = [1,5,10,13];% or = to_be_removed_2017
+clean_ds_2017_o = removeChannels(ds_2017_o,rem_channels_2017);
+
+rem_channels_2018 = [1,5,10,13];
+clean_ds_2018_o = removeChannels(ds_2018_o,rem_channels_2018);
 
 %% - Section 4: Split To Events
 % story / control

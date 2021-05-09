@@ -1,4 +1,4 @@
- % The function split the data into train and test sets, preforms a svm 
+% The function split the data into train and test sets, preforms a svm 
 % classification and return the results
 
 function [results_TPR,results_FPR,results_TNR,results_PPV] = ...
