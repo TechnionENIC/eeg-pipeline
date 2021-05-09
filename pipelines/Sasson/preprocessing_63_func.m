@@ -6,7 +6,7 @@
 %function [indelec] = preprocessing_63_func(myDir,file_name,filepath_before,filepath_after,cap385)
     %% 0-  Load eeglab
 
-    clc; close all;
+%     clc; close all;
     [ALLEEG EEG CURRENTSET ALLCOM] = eeglab;
     sprintf('Preprocessing %s', file_name);
     
@@ -45,20 +45,20 @@
     pop_saveset(EEG, 'filename', [EEG.setname '_2_hlpf.set'], 'filepath', filepath_after);
     pop_eegplot(EEG, 1, 1, 1);
     
-    return;
     %% 4- Referecence to avarage
 
     EEG = pop_reref( EEG, []);
     EEG.setname='Referenced';
     EEG = eeg_checkset( EEG );
     [ALLEEG EEG CURRENTSET] = eeg_store(ALLEEG, EEG);
-
+    pop_saveset(EEG, 'filename', [EEG.setname '_3_ref_avg.set'], 'filepath', filepath_after);
+    
     %% 5- Reject artifact automatically
     [EEG rejected] = pop_rejcont(EEG, 'taper', 'hamming');
     EEG.rejected_samples = rejected;
     EEG.setname='Auto-rejecting samples';
     EEG = eeg_checkset( EEG );
-    
+    pop_saveset(EEG, 'filename', [EEG.setname '_4_auto_rej_art.set'], 'filepath', filepath_after);
     %% 6- reject automatically before decompose data by ICA
 
     [EEG, indelec] = pop_rejchan(EEG, 'elec',[1:EEG.nbchan] ,'threshold',5,'norm','on','measure','prob');
@@ -66,19 +66,19 @@
     EEG.setname='after_auto_reject';
     EEG = eeg_checkset( EEG );
     [ALLEEG EEG  CURRENTSET] = eeg_store(ALLEEG, EEG);
-
+    pop_saveset(EEG, 'filename', [EEG.setname '_5_auto_rej_chan.set'], 'filepath', filepath_after);
     %% 7- decompose by ICA
 
     [EEG, indelec] = pop_runica(EEG, 'icatype', 'runica', 'extended',1,'interrupt','off');
     EEG.setname='After ICA';
     EEG = eeg_checkset( EEG );
     [ALLEEG EEG CURRENTSET] = eeg_store(ALLEEG, EEG); % save modifications
-
+    pop_saveset(EEG, 'filename', [EEG.setname '_6_ica.set'], 'filepath', filepath_after);
     %% 8- saving dataset to library - optional for automatically saving the dataset 
 
     % saving the dataset to filepath before component removing
-    EEG = pop_saveset( EEG, 'filename',file_name,'filepath',filepath_before);
-    EEG = eeg_checkset( EEG );
+%     EEG = pop_saveset( EEG, 'filename',file_name,'filepath',filepath_before);
+%     EEG = eeg_checkset( EEG );
 
     % labeling the ICAs automatically
     EEG = pop_iclabel(EEG, 'default');
@@ -90,11 +90,11 @@
     EEG = eeg_checkset( EEG );
     [ALLEEG EEG CURRENTSET] = eeg_store(ALLEEG, EEG); % save modifications
 
-
+    pop_saveset(EEG, 'filename', [EEG.setname '_7_iclabel.set'], 'filepath', filepath_after);
     % saving the dataset to filepath after component removing
-    EEG = pop_saveset( EEG, 'filename',file_name,'filepath',filepath_after);
-    EEG = eeg_checkset( EEG );
-    EEG.setname='After component removing';
+%     EEG = pop_saveset( EEG, 'filename',file_name,'filepath',filepath_after);
+%     EEG = eeg_checkset( EEG );
+%     EEG.setname='After component removing';
     %[ALLEEG EEG CURRENTSET] = eeg_store(ALLEEG, EEG); % save modifications
 
 % 
