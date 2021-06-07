@@ -1,16 +1,16 @@
-clear; % clear workspace
-close all;
-clc; % clear command window
+%lear; % clear workspace
+%close all;
+%clc; % clear command window
 
 %% - Section 1: Importing the data
 addpath(genpath('Functions'));
 
 path_2017 = 'data\raw_stories_2017'
-questionnaire_file_2017 = 'questionnaire_ans_2017.mat';
+questionnaire_file_2017 = 'data\questionnaire_ans_2017.mat';
 [ds_2017] = loadData(path_2017,questionnaire_file_2017);
 
 path_2018 = 'data\raw_stories_2018'
-questionnaire_file_2018 = 'questionnaire_ans_2018.mat';
+questionnaire_file_2018 = 'data\questionnaire_ans_2018.mat';
 [ds_2018] = loadData(path_2018,questionnaire_file_2018);
 
 %% - Section 2: Preprocessing

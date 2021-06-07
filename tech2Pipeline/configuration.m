@@ -2,16 +2,20 @@
 eeglabRoot = fileparts(which('eeglab'));
 pipelineSteps = ['1 BIDS Data', '2 HLPF', '3 PREP', '4 ICA', '5 IClabel', '6 Clean Label'];
 % Basic tab configurtaion
-studyName = 'mindfulness';
+studyName = 'studyname';
 dataDir = fullfile(pwd, 'data');  % Diretory path of EEG data files
 dataprotocol = 'brainVision';     % Protocol to treat EEG data
 singlesubject = 'Off';            % Run pipeline on single subject
 outputDir = fullfile(pwd, 'output'); % Directory Path of output save BIDS (Brain Imaging Data Structure) file structure
 % This channel location is compatiable with our 64Ch actiCAP snap AP-64 layout of easycap
-channelFile = fullfile(eeglabRoot, ['plugins' filesep 'dipfit' filesep 'standard_BESA' filesep 'standard-10-5-cap385.elp']); % Channel location file path
+channelFile = fullfile(eeglabRoot, ['extra' filesep 'channellocation' filesep 'standard-10-5-cap385.elp']); % Channel location file path
 runSteps = pipelineSteps;         % Steps to run
 savepoint = pipelineSteps;        % Save after those steps
 plotsave = pipelineSteps;         % Plot data after those steps
+
+fromSampling = 250;
+toSampling = 200;
+
 numChannels = 16;
 runChannels = [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16];
 
@@ -50,14 +54,14 @@ other = 0;
 
 keysConf = {'studyName', 'dataprotocol', 'singlesubject', 'plotsave', 'dataDir', 'channelFile', 'outputDir', 'runSteps', 'savepoint', 'lineFrequencies', ...
             'lowpass', 'highpass','notchlow','notchhigh', 'revfilt', 'detrendCutoff', 'detrendStepSize', 'robustDeviationThreshold', 'correlationThreshold', 'badTimeThreshold', 'highFrequencyNoiseThreshold', ...
-            'ransacCorrelationThreshold', 'brain', 'muscle', 'eye', 'heart', 'line', 'channel', 'other', 'runChannels','AutomaticrejectSwitch'};
+            'ransacCorrelationThreshold', 'brain', 'muscle', 'eye', 'heart', 'line', 'channel', 'other', 'runChannels','AutomaticrejectSwitch', 'fromSampling', 'toSampling'};
 valuesConf = {studyName, dataprotocol, singlesubject, plotsave, dataDir, channelFile, outputDir, runSteps, savepoint, lineFrequencies, ...
             lowpass, highpass, notchlow ,notchhigh, revfilt, detrendCutoff, detrendStepSize, robustDeviationThreshold, correlationThreshold, badTimeThreshold, highFrequencyNoiseThreshold, ...
-            ransacCorrelationThreshold, brain, muscle, eye, heart, line, channel, other, runChannels, AutomaticrejectSwitch};
+            ransacCorrelationThreshold, brain, muscle, eye, heart, line, channel, other, runChannels, AutomaticrejectSwitch, fromSampling, toSampling};
         
 RunPipelineConfiguration = containers.Map(keysConf, valuesConf);   
 
-    %  'elecrange'   - [integer array] electrode indices {Default: all electrodes} 
+%  'elecrange'   - [integer array] electrode indices {Default: all electrodes} 
 %  'epochlength' - [float] epoch length in seconds {Default: 0.5 s}
 %  'overlap'     - [float] epoch overlap in seconds {Default: 0.25 s}
 %  'freqlimit'   - [min max] frequency range too consider for thresholding

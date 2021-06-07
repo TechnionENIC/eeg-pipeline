@@ -1,13 +1,9 @@
-%% preparing dataset
-
 load fisheriris
 
 species_num = grp2idx(species);
-%%
 
-% binary classification 형태로 만들기 위해 100개만...
 X = randn(100,10);
-X(:,[1,3,5,7]) = meas(1:100,:); % 1, 3, 5, 7 번 feature가 분류에 유용한 feature일 것임.
+X(:,[1,3,5,7]) = meas(1:100,:);
 y = species_num(1:100);
 
 rand_num = randperm(size(X,1));

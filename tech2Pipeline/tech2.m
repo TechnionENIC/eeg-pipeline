@@ -1,9 +1,8 @@
-% TODO: check if following two lines needed, after GUI implementation
-%clear; % clear workspace
-%close all;
+clear; % clear workspace
+close all;
 clc; % clear command window
 
-% TODO: validation of required plugins
+% TODO: validation of required plugins and update version
 requiredPlugins = ['ICLabel' 'PrepPipeline0.55.4' 'SIFT1.52', 'dipfit3.6'];
 
 [ALLEEG, EEG, CURRENTSET, ALLCOM] = eeglab;
@@ -30,6 +29,7 @@ if (RunPipelineConfiguration('singlesubject') == "Off")
 end
     
 fprintf('\n--- Start processing %d subjects ---\n', numOfSubjects);
+% TODO: restore ability to run in parallel
 % parfor n=1:numOfSubjects
 for n=1:numOfSubjects
     filename = rawDataFiles(n).name;
@@ -69,10 +69,11 @@ for n=1:numOfSubjects
         end
     end
     
-    if (EEG.srate > 250)
-       EEG = pop_resample(EEG, 200, 0.8, 0.4);
+    %% Downsampling if needed, best practice is if srate is above 250, for better ICA performance
+    if (EEG.srate > RunPipelineConfiguration('fromSampling'))
+       EEG = pop_resample(EEG, RunPipelineConfiguration('toSampling'), 0.8, 0.4);
        EEG = eeg_checkset(EEG);
-       fprintf('\n--- Performed downsampling from %s to 100 ---\n', EEG.srate);
+       fprintf('\n--- srate is higher then %s, Performing downsampling from %s to %s ---\n', RunPipelineConfiguration('fromSampling'), EEG.srate, RunPipelineConfiguration('toSampling'));
        EEG = pop_saveset(EEG, 'filename', [EEG.setname '_downsample.set'], 'filepath', subjectOutputPath);
     end
     
@@ -128,7 +129,7 @@ for n=1:numOfSubjects
                                       'keepFiltered', true, ...
                                       'removeInterpolatedChannels', false));
 
-        % Alternative preprocessing option with "cleanLineNoise "                          
+% Alternative preprocessing option with "cleanLineNoise "                          
 %         signal      = struct('data', EEG.data, 'srate', EEG.srate);
 %         lineNoiseIn = struct('lineNoiseMethod', 'clean', ...
 %                              'lineNoiseChannels', 1:EEG.nbchan,...
@@ -145,20 +146,20 @@ for n=1:numOfSubjects
 %                              'maximumIterations', 10);
 %         [clnOutput, lineNoiseOut] = cleanLineNoise(signal, lineNoiseIn);
 %         EEG.data = clnOutput.data;   
-    % Step 7: Apply clean_rawdata() to reject bad channels and correct continuous data using Artifact Subspace Reconstruction (ASR). 
-    % Note 'availableRAM_GB' is for clean_rawdata1.10. For any newer version, it will cause error.
+% Step 7: Apply clean_rawdata() to reject bad channels and correct continuous data using Artifact Subspace Reconstruction (ASR). 
+% Note 'availableRAM_GB' is for clean_rawdata1.10. For any newer version, it will cause error.
 %     originalEEG = EEG;
 %     EEG = clean_rawdata(EEG, 5, -1, 0.85, 4, 20, 0.25, 'availableRAM_GB', 8);
 %  
 %     % Step 8: Interpolate all the removed channels
 %     EEG = pop_interp(EEG, originalEEG.chanlocs, 'spherical');
-    % Step 9: Re-reference the data to average
+% Step 9: Re-reference the data to average
 %     EEG.nbchan = EEG.nbchan+1;
 %     EEG.data(end+1,:) = zeros(1, EEG.pnts);
 %     EEG.chanlocs(1,EEG.nbchan).labels = 'initialReference';
 %     EEG = pop_reref(EEG, []);
 %     EEG = pop_select( EEG,'nochannel',{'initialReference'});
-%  
+
         EEG = eeg_checkset(EEG);
 
         % Save #3 - Dataset after preprocessing
@@ -175,6 +176,7 @@ for n=1:numOfSubjects
     if (contains(RunPipelineConfiguration('AutomaticrejectSwitch'), "On"))
           fprintf('\n--- Step 4: Run Independent component analysis (ICA) [subject %d] ---\n', n);
         % Using new ASR & Clean_rawdata
+        %TODO: Should be added to GUI configurtaion
         EEG = pop_clean_rawdata(EEG, 'FlatlineCriterion',5,'ChannelCriterion',0.8,'LineNoiseCriterion',4,'Highpass','off','BurstCriterion',20,'WindowCriterion',0.25,'BurstRejection','on','Distance','Euclidian','WindowCriterionTolerances',[-Inf 7] );
         % Using old eeglab method
         %EEG = pop_rejcont(EEG, 'taper', 'hamming');
@@ -218,7 +220,58 @@ for n=1:numOfSubjects
     % Remove ICLabel artifacts
     if any(contains(RunPipelineConfiguration('runSteps'), "6"))
         fprintf('\n--- Step 6: Remove ICA artifacts by thresholds defined above [subject %d] ---\n', n);
-        icflagThresh = [0 0;0 0; RunPipelineConfiguration("eye") 1; 0 0; 0 0; 0 0; 0 0];
+        icflagThresh = [RunPipelineConfiguration("brain")];
+        if (RunPipelineConfiguration("brain") > 0) 
+            icflagThresh = [icflagThresh 1;];
+        else
+            icflagThresh = [icflagThresh 0;];
+        end
+        
+        icflagThresh = [icflagThresh RunPipelineConfiguration("muscle")];
+        if (RunPipelineConfiguration("muscle") > 0) 
+            icflagThresh = [icflagThresh 1;];
+        else
+            icflagThresh = [icflagThresh 0;];
+        end
+        
+        icflagThresh = [icflagThresh RunPipelineConfiguration("eye")];
+        if (RunPipelineConfiguration("eye") > 0) 
+            icflagThresh = [icflagThresh 1;];
+        else
+            icflagThresh = [icflagThresh 0;];
+        end
+        
+        icflagThresh = [icflagThresh RunPipelineConfiguration("heart")];
+        if (RunPipelineConfiguration("heart") > 0) 
+            icflagThresh = [icflagThresh 1;];
+        else
+            icflagThresh = [icflagThresh 0;];
+        end
+        
+        
+        icflagThresh = [icflagThresh RunPipelineConfiguration("line")];
+        if (RunPipelineConfiguration("line") > 0) 
+            icflagThresh = [icflagThresh 1;];
+        else
+            icflagThresh = [icflagThresh 0;];
+        end
+      
+        icflagThresh = [icflagThresh RunPipelineConfiguration("channel")];
+        if (RunPipelineConfiguration("channel") > 0) 
+            icflagThresh = [icflagThresh 1;];
+        else
+            icflagThresh = [icflagThresh 0;];
+        end
+       
+        icflagThresh = [icflagThresh RunPipelineConfiguration("other")];
+        if (RunPipelineConfiguration("other") > 0) 
+            icflagThresh = [icflagThresh 1;];
+        else
+            icflagThresh = [icflagThresh 0;];
+        end    
+        
+       
+        %icflagThresh = [0 0;0 0; RunPipelineConfiguration("eye") 1; 0 0; 0 0; 0 0; 0 0];
       
         EEG = pop_icflag(EEG, icflagThresh);
         EEG = eeg_checkset(EEG);
@@ -232,11 +285,10 @@ for n=1:numOfSubjects
         end
     end
     
-    % Translate to bands
-    %figure; pop_spectopo(EEG, 1, [0  252048], 'EEG' , 'percent', 50, 'freq', [6 10 22], 'freqrange', [2 25], 'electrodes', 'on');
-
+% TODO: WIP - Translate to bands
 [spectra,freqs] = spectopo(EEG.data, 0, EEG.srate);
-% 
+
+%figure; pop_spectopo(EEG, 1, [0  252048], 'EEG' , 'percent', 50, 'freq', [6 10 22], 'freqrange', [2 25], 'electrodes', 'on');
 % % delta=1-4, theta=4-8, alpha=8-13, beta=13-30, gamma=30-80
 % deltaIdx = find(freqs>1 & freqs<4);
 % thetaIdx = find(freqs>4 & freqs<8);
@@ -251,19 +303,15 @@ for n=1:numOfSubjects
 % betaPower  = mean(10.^(spectra(betaIdx)/10));
 % gammaPower = mean(10.^(spectra(gammaIdx)/10));
 % %%%%%%%%%%%%%%%%%
-    % This example Matlab code shows how to compute power spectrum of epoched data, channel 2.
-    %[spectra,freqs] = spectopo(EEG.data, 0, EEG.srate);
-
-    % Set the following frequency bands: delta=1-4, theta=4-8, alpha=8-13, beta=13-30, gamma=30-80.
+% This example Matlab code shows how to compute power spectrum of epoched data, channel 2.
+%[spectra,freqs] = spectopo(EEG.data, 0, EEG.srate);
+% Set the following frequency bands: delta=1-4, theta=4-8, alpha=8-13, beta=13-30, gamma=30-80.
     
-	% Save #5 - Dataset with model and connectivity
-    if any(contains(RunPipelineConfiguration('savepoint'), "5"))
-        EEG = pop_saveset(EEG, 'filename', [EEG.setname '_5_final.set'], 'filepath', subjectOutputPath);
-        if any(contains(RunPipelineConfiguration('plotsave'), "5"))
-                pop_eegplot(EEG, 1, 1, 1);
-        end
-    end
     
-    %% - Step 7: Run SIFT pipeline
+   
+    % Save final work
+    EEG = pop_saveset(EEG, 'filename', [EEG.setname '_final.set'], 'filepath', subjectOutputPath); 
+    
+    %% - Step : Run SIFT pipeline
     %[ALLEEG EEG CURRENTSET] = eeg_store(ALLEEG, EEG, n); 
 end

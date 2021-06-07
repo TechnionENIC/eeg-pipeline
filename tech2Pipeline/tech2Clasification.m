@@ -4,17 +4,24 @@
 
 % Select all eeg data that was preporcessed
 setDataFiles = dir("C:\output\behav\**\*6_remove_iclabel.set");
-%numOfSubjects = length(setDataFiles);
-numOfSubjects = 6;
+numOfSubjects = length(setDataFiles);
+%numOfSubjects = 6;
+
+EPOCH_LOW = 0.1; 
+EPOCH_HIGH = 1;
 
 suffixLength = 4;
 % Holds final event summary dashboard
 eventSummary = struct;
 EEG_STRUCT_CORRECT_CONTROL = [];
 EEG_STRUCT_CORRECT_DYS = [];
+EEG_STRUCT_NONWORD_CORRECT_CONTROL = [];
+EEG_STRUCT_NONWORD_CORRECT_DYS = [];
 labels = [];
-GLOBAL_CORRECT = [];
-GLOBAL_CORRECT_COV = [];
+ALL_SUBJECTS_CORRECT_WORD = cell(1,40);
+ALL_SUBJECTS_CORRECT_WORD_COV = cell(1,40);
+ALL_SUBJECTS_CORRECT_NONWORD = cell(1,40);
+ALL_SUBJECTS_CORRECT_NONWORD_COV = cell(1,40);
 
 [ALLEEG, EEG, CURRENTSET, ALLCOM] = eeglab;
 
@@ -106,21 +113,26 @@ for n=1:numOfSubjects
     eventSummary(n).totalMultipleAnswer = length(find(strlength(qStrArr) > 1));
     eventSummary(n).totalNoAnswer = length(find(strcmp(qStrArr, "")));
     
-    correctEventIndices = [];
+    correctWordEventIndices = [];
+    correctNonWordEventIndices = [];
     % First phase we take only correct answer from both groups.
+    % Should we look at the data as continuous? merging beween epoch?
+    % Should we take a more tight range (ms) of the answer event?
+    % EEG_EVENT = pop_epoch(EEG, [], [-0.2 0.2], 'eventindices' ,eventSummary(n).eventQASummary(i).questionId);
+    % Should we take same constant 2.4 sec from questions to next
+    % question, where it is garanteed answer event is present.
     for i = 1:length(eventSummary(n).eventQASummary)
         if (strcmp(eventSummary(n).eventQASummary(i).answer, "t") && strcmp(eventSummary(n).eventQASummary(i).questionType, "S 11"))
-            % Should we look at the data as continuous? merging beween epoch?
-            % Should we take a more tight range (ms) of the answer event?
-            % EEG_EVENT = pop_epoch(EEG, [], [-0.2 0.2], 'eventindices' ,eventSummary(n).eventQASummary(i).questionId);
-            % Should we take same constant 2.4 sec from questions to next
-            % question, where it is garanteed answer event is present.
-            correctEventIndices = [correctEventIndices eventSummary(n).eventQASummary(i).questionId];
-            
+            correctWordEventIndices = [correctWordEventIndices eventSummary(n).eventQASummary(i).questionId];    
+        end
+        if (strcmp(eventSummary(n).eventQASummary(i).answer, "t") && strcmp(eventSummary(n).eventQASummary(i).questionType, "S 12"))
+            correctNonWordEventIndices = [correctNonWordEventIndices eventSummary(n).eventQASummary(i).questionId];    
         end
     end
 
-    EEG_STRUCT_CORRECT = pop_epoch(EEG, [], [0.1 1], 'eventindices' ,correctEventIndices);
+    EEG_STRUCT_CORRECT_WORD = pop_epoch(EEG, [], [EPOCH_LOW EPOCH_HIGH], 'eventindices' ,correctWordEventIndices);
+    EEG_STRUCT_CORRECT_NONWORD = pop_epoch(EEG, [], [EPOCH_LOW EPOCH_HIGH], 'eventindices' ,correctNonWordEventIndices);
+   
     % Rephasing from 3D data matrix to 2D - [NumOfChannel, Signal,
     % NumOfCorrectAnswer) = e.g [64, 440, 85] to continious without NumOfCorrectAnswer segrigation [NumOfChannel,
     % Signal]
@@ -128,24 +140,27 @@ for n=1:numOfSubjects
     %EEG_STRUCT_CORRECT.data = reshape(EEG_STRUCT_CORRECT.data,[S(1),S(2)*S(3)]);
     
     % Mean over epoch 
-    meanEpoch = mean(EEG_STRUCT_CORRECT.data, 3);
+    meanEpochCorretWord = mean(EEG_STRUCT_CORRECT_WORD.data, 3);
+    meanEpochCorretNonWord = mean(EEG_STRUCT_CORRECT_NONWORD.data, 3);
     
-    GLOBAL_CORRECT = [GLOBAL_CORRECT meanEpoch];
-     if (strcmp(eventSummary(n).group, "Control"))
+    ALL_SUBJECTS_CORRECT_WORD{n} = meanEpochCorretWord;
+    ALL_SUBJECTS_CORRECT_NONWORD{n} = meanEpochCorretNonWord;
+    fprintf('Calculate covariance matrix \n');
+    ALL_SUBJECTS_CORRECT_WORD_COV{n} = cov(meanEpochCorretWord);
+    ALL_SUBJECTS_CORRECT_NONWORD_COV{n} = cov(meanEpochCorretNonWord);
+    if (strcmp(eventSummary(n).group, "Control"))
          tmpLabel = 1;
-         EEG_STRUCT_CORRECT_CONTROL = [EEG_STRUCT_CORRECT_CONTROL meanEpoch];
-     else
+         EEG_STRUCT_CORRECT_CONTROL = [EEG_STRUCT_CORRECT_CONTROL meanEpochCorretWord];
+         EEG_STRUCT_NONWORD_CORRECT_CONTROL = [EEG_STRUCT_NONWORD_CORRECT_CONTROL meanEpochCorretNonWord];
+    else
          tmpLabel = 2;
-         EEG_STRUCT_CORRECT_DYS = [EEG_STRUCT_CORRECT_DYS meanEpoch];
-     end
-     labels = [labels tmpLabel];
-     
-     fprintf('Calculate covariance matrix \n');
-     GLOBAL_CORRECT_COV = [GLOBAL_CORRECT_COV cov(meanEpoch)];
-% pop_eegplot(EEG_EVENT)
-
-
+         EEG_STRUCT_CORRECT_DYS = [EEG_STRUCT_CORRECT_DYS meanEpochCorretWord];
+         EEG_STRUCT_NONWORD_CORRECT_DYS = [EEG_STRUCT_NONWORD_CORRECT_DYS meanEpochCorretNonWord];
+    end
+    labels = [labels tmpLabel];
 end
+
+% pop_eegplot(EEG_EVENT)
 
 % When measuring brain activity, you usually make a long, 
 % continuous recording during which you expose your study participants to 
@@ -165,8 +180,8 @@ end
 
 % - Classifier section: SVM Classification
 fprintf('Starting SVM training \n');
-Mdl = fitcsvm(GLOBAL_CORRECT_COV, labels);
-predicted = predict(Mdl, GLOBAL_CORRECT_COV);
+Mdl = fitcsvm(ALL_SUBJECTS_CORRECT_WORD_COV, labels);
+predicted = predict(Mdl, ALL_SUBJECTS_CORRECT_WORD_COV);
 
 %[SVM_TPR_DYS ,SVM_FPR_DYS ,SVM_TNR_DYS ,SVM_PPV_DYS] =...
 %    svmClassification(mat_cov_dys,ds_cov_dys,per_of_train,num_of_iterations);

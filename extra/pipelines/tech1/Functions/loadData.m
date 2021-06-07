@@ -7,12 +7,6 @@
 
 function [data_set] = loadData(path,questionnaire_file)
     disp('Loading Data.');
-    addpath(genpath('toolbox/automagic'));
-    addpath(genpath('toolbox/covariance'));
-    addpath(genpath('toolbox/dr'));
-    addpath(genpath('toolbox/eeglab2020_0'));
-    addpath(genpath('MAT - Files'));
-
     A = load(questionnaire_file);
     vars = whos(matfile(questionnaire_file));
     questionnaire = A.(vars(1).name);
