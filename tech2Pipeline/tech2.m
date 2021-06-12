@@ -181,6 +181,10 @@ for n=1:numOfSubjects
         % Using new ASR & Clean_rawdata
         %TODO: Should be added to GUI configurtaion
         EEG = pop_clean_rawdata(EEG, 'FlatlineCriterion',5,'ChannelCriterion',0.8,'LineNoiseCriterion',4,'Highpass','off','BurstCriterion',20,'WindowCriterion',0.25,'BurstRejection','on','Distance','Euclidian','WindowCriterionTolerances',[-Inf 7] );
+        EEG = pop_select( EEG, 'nopoint',TMPREJ(:,1:2));
+        fileID = fopen(fullfile(subjectOutputPath, setname + '_reject.txt'),'w');
+        fprintf(fileID, TMPREJ(:,1:2));
+        fclose(fileID);
         % Using old eeglab method
         %EEG = pop_rejcont(EEG, 'taper', 'hamming');
         %EEG.rejected_samples = rejected;
