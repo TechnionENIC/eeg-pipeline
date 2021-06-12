@@ -8,13 +8,13 @@ dataprotocol = 'brainVision';     % Protocol to treat EEG data
 singlesubject = 'Off';            % Run pipeline on single subject
 outputDir = fullfile(pwd, 'output'); % Directory Path of output save BIDS (Brain Imaging Data Structure) file structure
 % This channel location is compatiable with our 64Ch actiCAP snap AP-64 layout of easycap
-channelFile = fullfile(eeglabRoot, ['extra' filesep 'channellocation' filesep 'standard-10-5-cap385.elp']); % Channel location file path
+channelFile = fullfile(fileparts(mfilename("fullpath")), 'channellocation', 'standard-10-5-cap385.elp'); % Channel location file path
 runSteps = pipelineSteps;         % Steps to run
 savepoint = pipelineSteps;        % Save after those steps
 plotsave = pipelineSteps;         % Plot data after those steps
 
 fromSampling = 250;
-toSampling = 200;
+toSampling = 250;
 
 numChannels = 16;
 runChannels = [1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16];
