@@ -172,6 +172,149 @@ end
 % - Feature extraction section: Calc Covariance Matrices
 %mat_cov_control = calcCovMat(EEG_STRUCT_CORRECT_CONTROL);
 
+% X = 40 subjects, Y = Span of data matrix into vector
+total_mat_corrent_word = zeros(40,11520); % 64 * 180 = 11520
+total_mat_correct_nonword = zeros(40,11520); % 64 * 180 = 11520
+
+% Cov on data frames cell
+total_mat_corrent_word_cov = zeros(40,32400); % 180 * 180 = 32400
+total_mat_correct_nonword_cov = zeros(40,32400); % 180 * 180 = 32400
+
+% Cov on channels (what if channel removed for individual subject?)
+total_mat_corrent_word_channel_cov = zeros(40,4096); % 64 * 64 = 4096
+total_mat_correct_nonword_channel_cov = zeros(40,4096); % 64 * 64 = 4096
+
+
+for k = 1:40
+    temp = ALL_SUBJECTS_CORRECT_WORD(k);
+    tempMat = cell2mat(temp);
+    total_mat_corrent_word(k,:) = tempMat(:)';
+    
+    temp = ALL_SUBJECTS_CORRECT_NONWORD(k);
+    tempMat = cell2mat(temp);
+    total_mat_correct_nonword(k,:) = tempMat(:)';
+    
+    temp = ALL_SUBJECTS_CORRECT_WORD_COV(k);
+    tempMat = cell2mat(temp);
+    total_mat_corrent_word_cov(k,:) = tempMat(:)';
+    
+    temp = ALL_SUBJECTS_CORRECT_NONWORD_COV(k);
+    tempMat = cell2mat(temp);
+    total_mat_correct_nonword_cov(k,:) = tempMat(:)';
+    
+    extractTemp = ALL_SUBJECTS_CORRECT_WORD(k);
+    extractTempMat = cell2mat(extractTemp);
+    tempMat = cov(extractTempMat'); 
+    total_mat_corrent_word_channel_cov(k,:) = tempMat(:)';
+    
+    extractTemp = ALL_SUBJECTS_CORRECT_NONWORD(k);
+    extractTempMat = cell2mat(extractTemp);
+    tempMat = cov(extractTempMat'); 
+    total_mat_correct_nonword_channel_cov(k,:) = tempMat(:)';
+end
+
+pca_total_mat_corrent_word = pca(total_mat_corrent_word,2);
+pca_total_mat_correct_nonword = pca(total_mat_correct_nonword,2);
+pca_total_mat_corrent_word_cov = pca(total_mat_corrent_word_cov,2);
+pca_total_mat_correct_nonword_cov = pca(total_mat_correct_nonword_cov,2);
+pca_total_mat_corrent_word_channel_cov = pca(total_mat_corrent_word_channel_cov,2);
+pca_total_mat_correct_nonword_channel_cov = pca(total_mat_correct_nonword_channel_cov,2);
+
+figure('Name','pca_total_mat_corrent_word');
+title('pca_total_mat_corrent_word');
+for i = 1:40
+s1 = scatter(pca_total_mat_corrent_word(i,1),pca_total_mat_corrent_word(i,2));
+s1.Tag = "pca_total_mat_corrent_word";
+s1.MarkerFaceColor = [rand rand rand];
+% 1 is control 2 is dys
+if (labels(i) == 1) 
+   s1.Marker = 'o';
+else
+   s1.Marker = 'x';
+end
+s1.DisplayName = labels(i)+"data"+i;
+grid on; hold on;
+end
+
+figure('Name','pca_total_mat_correct_nonword');
+title('pca_total_mat_correct_nonword');
+for i = 1:40
+s2 = scatter(pca_total_mat_correct_nonword(i,1),pca_total_mat_correct_nonword(i,2));
+s2.Tag = "pca_total_mat_correct_nonword";
+s2.MarkerFaceColor = [rand rand rand];
+% 1 is control 2 is dys
+if (labels(i) == 1) 
+   s2.Marker = 'o';
+else
+   s2.Marker = 'x';
+end
+s2.DisplayName = labels(i)+"data"+i;
+grid on; hold on;
+end
+
+figure('Name','pca_total_mat_corrent_word_cov');
+title('pca_total_mat_corrent_word_cov');
+for i = 1:40
+s3 = scatter(pca_total_mat_corrent_word_cov(i,1),pca_total_mat_corrent_word_cov(i,2));
+s3.Tag = "pca_total_mat_corrent_word_cov";
+s3.MarkerFaceColor = [rand rand rand];
+% 1 is control 2 is dys
+if (labels(i) == 1) 
+   s3.Marker = 'o';
+else
+   s3.Marker = 'x';
+end
+s3.DisplayName = labels(i)+"data"+i;
+grid on; hold on;
+end
+
+figure('Name','pca_total_mat_correct_nonword_cov');
+title('pca_total_mat_correct_nonword_cov');
+for i = 1:40
+s4 = scatter(pca_total_mat_correct_nonword_cov(i,1),pca_total_mat_correct_nonword_cov(i,2));
+s4.Tag = "pca_total_mat_correct_nonword_cov";
+s4.MarkerFaceColor = [rand rand rand];
+% 1 is control 2 is dys
+if (labels(i) == 1) 
+   s4.Marker = 'o';
+else
+   s4.Marker = 'x';
+end
+s4.DisplayName = labels(i)+"data"+i;
+grid on; hold on;
+end
+
+figure('Name','pca_total_mat_corrent_word_channel_cov');
+title('pca_total_mat_corrent_word_channel_cov');
+for i = 1:40
+s5 = scatter(pca_total_mat_corrent_word_channel_cov(i,1),pca_total_mat_corrent_word_channel_cov(i,2));
+s5.Tag = "pca_total_mat_corrent_word_channel_cov";
+s5.MarkerFaceColor = [rand rand rand];
+% 1 is control 2 is dys
+if (labels(i) == 1) 
+   s5.Marker = 'o';
+else
+   s5.Marker = 'x';
+end
+s5.DisplayName = labels(i)+"data"+i;
+grid on; hold on;
+end
+
+figure('Name','pca_total_mat_correct_nonword_channel_cov');
+title('pca_total_mat_correct_nonword_channel_cov');
+for i = 1:40
+s6 = scatter(pca_total_mat_correct_nonword_channel_cov(i,1),pca_total_mat_correct_nonword_channel_cov(i,2));
+s6.Tag = "pca_total_mat_correct_nonword_channel_cov";
+s6.MarkerFaceColor = [rand rand rand];
+% 1 is control 2 is dys
+if (labels(i) == 1) 
+   s6.Marker = 'o';
+else
+   s6.Marker = 'x';
+end
+s6.DisplayName = labels(i)+"data"+i;
+grid on; hold on;
+end
 
 % - Feature reduction section: PCA
 %fprintf('Calculate PCA matrix \n');
@@ -180,7 +323,7 @@ end
 
 % - Classifier section: SVM Classification
 fprintf('Starting SVM training \n');
-Mdl = fitcsvm(ALL_SUBJECTS_CORRECT_WORD_COV, labels);
+Mdl = fitcsvm(total_mat_corrent_word_channel_cov, labels);
 predicted = predict(Mdl, ALL_SUBJECTS_CORRECT_WORD_COV);
 
 %[SVM_TPR_DYS ,SVM_FPR_DYS ,SVM_TNR_DYS ,SVM_PPV_DYS] =...
@@ -206,9 +349,6 @@ function plotClassificationResults(TPR_table ,FPR_table ,TNR_table ,PPV_table)
         title(col_names(i), 'Interpreter', 'none'); grid on;
     end
 end
-
-
-
 
 
 
