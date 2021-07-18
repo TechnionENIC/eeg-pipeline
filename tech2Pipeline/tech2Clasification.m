@@ -316,20 +316,287 @@ s6.DisplayName = labels(i)+"data"+i;
 grid on; hold on;
 end
 
+opts.fs = EEG.srate;
+feat_mat_correct_nonword = zeros(40,34);
+for i = 1:40
+    
+     f1 = jfeeg('rba', total_mat_correct_nonword(i,:), opts); 
+     f2 = jfeeg('bpg', total_mat_correct_nonword(i,:), opts); 
+     f3 = jfeeg('bpb', total_mat_correct_nonword(i,:), opts); 
+     f4 = jfeeg('bpa', total_mat_correct_nonword(i,:), opts); 
+     f5 = jfeeg('bpt', total_mat_correct_nonword(i,:), opts); 
+     f6 = jfeeg('bpd', total_mat_correct_nonword(i,:), opts); 
+    f7 = jfeeg('ha', total_mat_correct_nonword(i,:)); 
+    f8 = jfeeg('hm', total_mat_correct_nonword(i,:));
+    f9 = jfeeg('hc', total_mat_correct_nonword(i,:));
+    f10 = jfeeg('skew', total_mat_correct_nonword(i,:));
+    f11 = jfeeg('kurt', total_mat_correct_nonword(i,:));
+    f12 = jfeeg('1d', total_mat_correct_nonword(i,:));
+    f13 = jfeeg('n1d', total_mat_correct_nonword(i,:));
+    f14 = jfeeg('2d', total_mat_correct_nonword(i,:));
+    f15 = jfeeg('n2d', total_mat_correct_nonword(i,:));
+    f16 = jfeeg('mcl', total_mat_correct_nonword(i,:));
+    f17 = jfeeg('me', total_mat_correct_nonword(i,:));
+    f18 = jfeeg('mte', total_mat_correct_nonword(i,:));
+    f19 = jfeeg('lrssv', total_mat_correct_nonword(i,:));
+    f20 = jfeeg('te', total_mat_correct_nonword(i,:));
+    f21 = jfeeg('sh', total_mat_correct_nonword(i,:));
+    f22 = jfeeg('le', total_mat_correct_nonword(i,:));
+    f23 = jfeeg('re', total_mat_correct_nonword(i,:));
+    f24 = jfeeg('am', total_mat_correct_nonword(i,:));
+    f25 = jfeeg('sd', total_mat_correct_nonword(i,:));
+    f26 = jfeeg('var', total_mat_correct_nonword(i,:));
+    f27 = jfeeg('md', total_mat_correct_nonword(i,:));
+    f28 = jfeeg('ar', total_mat_correct_nonword(i,:));
+    f29 = jfeeg('max', total_mat_correct_nonword(i,:));
+    f30 = jfeeg('min', total_mat_correct_nonword(i,:));
+    
+    feat = [f1, f2, f3, f4, f5, f6, f7 , f8 , f9 , f10 , f11 , f12 , f13 , f14 , f15 , f16 , f17 , f18 , f19 , f20 , f21 , f22 , f23 , f24 , f25 , f26 , f27 , f28 , f29 , f30 , labels(i)];
+    feat_mat_correct_nonword(i,:) = feat;
+end
+
+feat_mat_correct_nonword_channel_cov = zeros(40,34);
+for i = 1:40
+     f1 = jfeeg('rba', total_mat_correct_nonword_channel_cov(i,:), opts); 
+     f2 = jfeeg('bpg', total_mat_correct_nonword_channel_cov(i,:), opts); 
+     f3 = jfeeg('bpb', total_mat_correct_nonword_channel_cov(i,:), opts); 
+     f4 = jfeeg('bpa', total_mat_correct_nonword_channel_cov(i,:), opts); 
+     f5 = jfeeg('bpt', total_mat_correct_nonword_channel_cov(i,:), opts); 
+     f6 = jfeeg('bpd', total_mat_correct_nonword_channel_cov(i,:), opts); 
+    f7 = jfeeg('ha', total_mat_correct_nonword_channel_cov(i,:)); 
+    f8 = jfeeg('hm', total_mat_correct_nonword_channel_cov(i,:));
+    f9 = jfeeg('hc', total_mat_correct_nonword_channel_cov(i,:));
+    f10 = jfeeg('skew', total_mat_correct_nonword_channel_cov(i,:));
+    f11 = jfeeg('kurt', total_mat_correct_nonword_channel_cov(i,:));
+    f12 = jfeeg('1d', total_mat_correct_nonword_channel_cov(i,:));
+    f13 = jfeeg('n1d', total_mat_correct_nonword_channel_cov(i,:));
+    f14 = jfeeg('2d', total_mat_correct_nonword_channel_cov(i,:));
+    f15 = jfeeg('n2d', total_mat_correct_nonword_channel_cov(i,:));
+    f16 = jfeeg('mcl', total_mat_correct_nonword_channel_cov(i,:));
+    f17 = jfeeg('me', total_mat_correct_nonword_channel_cov(i,:));
+    f18 = jfeeg('mte', total_mat_correct_nonword_channel_cov(i,:));
+    f19 = jfeeg('lrssv', total_mat_correct_nonword_channel_cov(i,:));
+    f20 = jfeeg('te', total_mat_correct_nonword_channel_cov(i,:));
+    f21 = jfeeg('sh', total_mat_correct_nonword_channel_cov(i,:));
+    f22 = jfeeg('le', total_mat_correct_nonword_channel_cov(i,:));
+    f23 = jfeeg('re', total_mat_correct_nonword_channel_cov(i,:));
+    f24 = jfeeg('am', total_mat_correct_nonword_channel_cov(i,:));
+    f25 = jfeeg('sd', total_mat_correct_nonword_channel_cov(i,:));
+    f26 = jfeeg('var', total_mat_correct_nonword_channel_cov(i,:));
+    f27 = jfeeg('md', total_mat_correct_nonword_channel_cov(i,:));
+    f28 = jfeeg('ar', total_mat_correct_nonword_channel_cov(i,:));
+    f29 = jfeeg('max', total_mat_correct_nonword_channel_cov(i,:));
+    f30 = jfeeg('min', total_mat_correct_nonword_channel_cov(i,:));
+    
+    feat = [f1, f2, f3, f4, f5, f6, f7 , f8 , f9 , f10 , f11 , f12 , f13 , f14 , f15 , f16 , f17 , f18 , f19 , f20 , f21 , f22 , f23 , f24 , f25 , f26 , f27 , f28 , f29 , f30 , labels(i)];
+    feat_mat_correct_nonword_channel_cov(i,:) = feat;
+end
+
+feat_mat_correct_nonword_cov = zeros(40,34);
+for i = 1:40
+     f1 = jfeeg('rba', total_mat_correct_nonword_cov(i,:), opts); 
+     f2 = jfeeg('bpg', total_mat_correct_nonword_cov(i,:), opts); 
+     f3 = jfeeg('bpb', total_mat_correct_nonword_cov(i,:), opts); 
+     f4 = jfeeg('bpa', total_mat_correct_nonword_cov(i,:), opts); 
+     f5 = jfeeg('bpt', total_mat_correct_nonword_cov(i,:), opts); 
+     f6 = jfeeg('bpd', total_mat_correct_nonword_cov(i,:), opts); 
+    f7 = jfeeg('ha', total_mat_correct_nonword_cov(i,:)); 
+    f8 = jfeeg('hm', total_mat_correct_nonword_cov(i,:));
+    f9 = jfeeg('hc', total_mat_correct_nonword_cov(i,:));
+    f10 = jfeeg('skew', total_mat_correct_nonword_cov(i,:));
+    f11 = jfeeg('kurt', total_mat_correct_nonword_cov(i,:));
+    f12 = jfeeg('1d', total_mat_correct_nonword_cov(i,:));
+    f13 = jfeeg('n1d', total_mat_correct_nonword_cov(i,:));
+    f14 = jfeeg('2d', total_mat_correct_nonword_cov(i,:));
+    f15 = jfeeg('n2d', total_mat_correct_nonword_cov(i,:));
+    f16 = jfeeg('mcl', total_mat_correct_nonword_cov(i,:));
+    f17 = jfeeg('me', total_mat_correct_nonword_cov(i,:));
+    f18 = jfeeg('mte', total_mat_correct_nonword_cov(i,:));
+    f19 = jfeeg('lrssv', total_mat_correct_nonword_cov(i,:));
+    f20 = jfeeg('te', total_mat_correct_nonword_cov(i,:));
+    f21 = jfeeg('sh', total_mat_correct_nonword_cov(i,:));
+    f22 = jfeeg('le', total_mat_correct_nonword_cov(i,:));
+    f23 = jfeeg('re', total_mat_correct_nonword_cov(i,:));
+    f24 = jfeeg('am', total_mat_correct_nonword_cov(i,:));
+    f25 = jfeeg('sd', total_mat_correct_nonword_cov(i,:));
+    f26 = jfeeg('var', total_mat_correct_nonword_cov(i,:));
+    f27 = jfeeg('md', total_mat_correct_nonword_cov(i,:));
+    f28 = jfeeg('ar', total_mat_correct_nonword_cov(i,:));
+    f29 = jfeeg('max', total_mat_correct_nonword_cov(i,:));
+    f30 = jfeeg('min', total_mat_correct_nonword_cov(i,:));
+    
+    feat = [f1, f2, f3, f4, f5, f6, f7 , f8 , f9 , f10 , f11 , f12 , f13 , f14 , f15 , f16 , f17 , f18 , f19 , f20 , f21 , f22 , f23 , f24 , f25 , f26 , f27 , f28 , f29 , f30 , labels(i)];
+    feat_mat_correct_nonword_cov(i,:) = feat;
+end
+
+feat_mat_corrent_word = zeros(40,34);
+for i = 1:40
+     f1 = jfeeg('rba', total_mat_correct_nonword(i,:), opts); 
+     f2 = jfeeg('bpg', total_mat_correct_nonword(i,:), opts); 
+     f3 = jfeeg('bpb', total_mat_correct_nonword(i,:), opts); 
+     f4 = jfeeg('bpa', total_mat_correct_nonword(i,:), opts); 
+     f5 = jfeeg('bpt', total_mat_correct_nonword(i,:), opts); 
+     f6 = jfeeg('bpd', total_mat_correct_nonword(i,:), opts); 
+    f7 = jfeeg('ha', total_mat_correct_nonword(i,:)); 
+    f8 = jfeeg('hm', total_mat_correct_nonword(i,:));
+    f9 = jfeeg('hc', total_mat_correct_nonword(i,:));
+    f10 = jfeeg('skew', total_mat_correct_nonword(i,:));
+    f11 = jfeeg('kurt', total_mat_correct_nonword(i,:));
+    f12 = jfeeg('1d', total_mat_correct_nonword(i,:));
+    f13 = jfeeg('n1d', total_mat_correct_nonword(i,:));
+    f14 = jfeeg('2d', total_mat_correct_nonword(i,:));
+    f15 = jfeeg('n2d', total_mat_correct_nonword(i,:));
+    f16 = jfeeg('mcl', total_mat_correct_nonword(i,:));
+    f17 = jfeeg('me', total_mat_correct_nonword(i,:));
+    f18 = jfeeg('mte', total_mat_correct_nonword(i,:));
+    f19 = jfeeg('lrssv', total_mat_correct_nonword(i,:));
+    f20 = jfeeg('te', total_mat_correct_nonword(i,:));
+    f21 = jfeeg('sh', total_mat_correct_nonword(i,:));
+    f22 = jfeeg('le', total_mat_correct_nonword(i,:));
+    f23 = jfeeg('re', total_mat_correct_nonword(i,:));
+    f24 = jfeeg('am', total_mat_correct_nonword(i,:));
+    f25 = jfeeg('sd', total_mat_correct_nonword(i,:));
+    f26 = jfeeg('var', total_mat_correct_nonword(i,:));
+    f27 = jfeeg('md', total_mat_correct_nonword(i,:));
+    f28 = jfeeg('ar', total_mat_correct_nonword(i,:));
+    f29 = jfeeg('max', total_mat_correct_nonword(i,:));
+    f30 = jfeeg('min', total_mat_correct_nonword(i,:));
+    
+    feat = [f1, f2, f3, f4, f5, f6, f7 , f8 , f9 , f10 , f11 , f12 , f13 , f14 , f15 , f16 , f17 , f18 , f19 , f20 , f21 , f22 , f23 , f24 , f25 , f26 , f27 , f28 , f29 , f30 , labels(i)];
+    feat_mat_corrent_word(i,:) = feat;
+end
+
+feat_mat_correct_nonword = zeros(40,34);
+for i = 1:40
+     f1 = jfeeg('rba', total_mat_corrent_word(i,:), opts); 
+     f2 = jfeeg('bpg', total_mat_corrent_word(i,:), opts); 
+     f3 = jfeeg('bpb', total_mat_corrent_word(i,:), opts); 
+     f4 = jfeeg('bpa', total_mat_corrent_word(i,:), opts); 
+     f5 = jfeeg('bpt', total_mat_corrent_word(i,:), opts); 
+     f6 = jfeeg('bpd', total_mat_corrent_word(i,:), opts); 
+    f7 = jfeeg('ha', total_mat_corrent_word(i,:)); 
+    f8 = jfeeg('hm', total_mat_corrent_word(i,:));
+    f9 = jfeeg('hc', total_mat_corrent_word(i,:));
+    f10 = jfeeg('skew', total_mat_corrent_word(i,:));
+    f11 = jfeeg('kurt', total_mat_corrent_word(i,:));
+    f12 = jfeeg('1d', total_mat_corrent_word(i,:));
+    f13 = jfeeg('n1d', total_mat_corrent_word(i,:));
+    f14 = jfeeg('2d', total_mat_corrent_word(i,:));
+    f15 = jfeeg('n2d', total_mat_corrent_word(i,:));
+    f16 = jfeeg('mcl', total_mat_corrent_word(i,:));
+    f17 = jfeeg('me', total_mat_corrent_word(i,:));
+    f18 = jfeeg('mte', total_mat_corrent_word(i,:));
+    f19 = jfeeg('lrssv', total_mat_corrent_word(i,:));
+    f20 = jfeeg('te', total_mat_corrent_word(i,:));
+    f21 = jfeeg('sh', total_mat_corrent_word(i,:));
+    f22 = jfeeg('le', total_mat_corrent_word(i,:));
+    f23 = jfeeg('re', total_mat_corrent_word(i,:));
+    f24 = jfeeg('am', total_mat_corrent_word(i,:));
+    f25 = jfeeg('sd', total_mat_corrent_word(i,:));
+    f26 = jfeeg('var', total_mat_corrent_word(i,:));
+    f27 = jfeeg('md', total_mat_corrent_word(i,:));
+    f28 = jfeeg('ar', total_mat_corrent_word(i,:));
+    f29 = jfeeg('max', total_mat_corrent_word(i,:));
+    f30 = jfeeg('min', total_mat_corrent_word(i,:));
+    
+    feat = [f1, f2, f3, f4, f5, f6, f7 , f8 , f9 , f10 , f11 , f12 , f13 , f14 , f15 , f16 , f17 , f18 , f19 , f20 , f21 , f22 , f23 , f24 , f25 , f26 , f27 , f28 , f29 , f30 , labels(i)];
+    feat_mat_correct_nonword(i,:) = feat;
+end
+
+feat_mat_corrent_word_channel_cov = zeros(40,34);
+for i = 1:40
+     f1 = jfeeg('rba', total_mat_corrent_word_channel_cov(i,:), opts); 
+     f2 = jfeeg('bpg', total_mat_corrent_word_channel_cov(i,:), opts); 
+     f3 = jfeeg('bpb', total_mat_corrent_word_channel_cov(i,:), opts); 
+     f4 = jfeeg('bpa', total_mat_corrent_word_channel_cov(i,:), opts); 
+     f5 = jfeeg('bpt', total_mat_corrent_word_channel_cov(i,:), opts); 
+     f6 = jfeeg('bpd', total_mat_corrent_word_channel_cov(i,:), opts); 
+    f7 = jfeeg('ha', total_mat_corrent_word_channel_cov(i,:)); 
+    f8 = jfeeg('hm', total_mat_corrent_word_channel_cov(i,:));
+    f9 = jfeeg('hc', total_mat_corrent_word_channel_cov(i,:));
+    f10 = jfeeg('skew', total_mat_corrent_word_channel_cov(i,:));
+    f11 = jfeeg('kurt', total_mat_corrent_word_channel_cov(i,:));
+    f12 = jfeeg('1d', total_mat_corrent_word_channel_cov(i,:));
+    f13 = jfeeg('n1d', total_mat_corrent_word_channel_cov(i,:));
+    f14 = jfeeg('2d', total_mat_corrent_word_channel_cov(i,:));
+    f15 = jfeeg('n2d', total_mat_corrent_word_channel_cov(i,:));
+    f16 = jfeeg('mcl', total_mat_corrent_word_channel_cov(i,:));
+    f17 = jfeeg('me', total_mat_corrent_word_channel_cov(i,:));
+    f18 = jfeeg('mte', total_mat_corrent_word_channel_cov(i,:));
+    f19 = jfeeg('lrssv', total_mat_corrent_word_channel_cov(i,:));
+    f20 = jfeeg('te', total_mat_corrent_word_channel_cov(i,:));
+    f21 = jfeeg('sh', total_mat_corrent_word_channel_cov(i,:));
+    f22 = jfeeg('le', total_mat_corrent_word_channel_cov(i,:));
+    f23 = jfeeg('re', total_mat_corrent_word_channel_cov(i,:));
+    f24 = jfeeg('am', total_mat_corrent_word_channel_cov(i,:));
+    f25 = jfeeg('sd', total_mat_corrent_word_channel_cov(i,:));
+    f26 = jfeeg('var', total_mat_corrent_word_channel_cov(i,:));
+    f27 = jfeeg('md', total_mat_corrent_word_channel_cov(i,:));
+    f28 = jfeeg('ar', total_mat_corrent_word_channel_cov(i,:));
+    f29 = jfeeg('max', total_mat_corrent_word_channel_cov(i,:));
+    f30 = jfeeg('min', total_mat_corrent_word_channel_cov(i,:));
+    
+    feat = [f1, f2, f3, f4, f5, f6, f7 , f8 , f9 , f10 , f11 , f12 , f13 , f14 , f15 , f16 , f17 , f18 , f19 , f20 , f21 , f22 , f23 , f24 , f25 , f26 , f27 , f28 , f29 , f30 , labels(i)];
+    feat_mat_corrent_word_channel_cov(i,:) = feat;
+end
+
+feat_mat_corrent_word_cov = zeros(40,34);
+for i = 1:40
+     f1 = jfeeg('rba', total_mat_corrent_word_cov(i,:), opts); 
+     f2 = jfeeg('bpg', total_mat_corrent_word_cov(i,:), opts); 
+     f3 = jfeeg('bpb', total_mat_corrent_word_cov(i,:), opts); 
+     f4 = jfeeg('bpa', total_mat_corrent_word_cov(i,:), opts); 
+     f5 = jfeeg('bpt', total_mat_corrent_word_cov(i,:), opts); 
+     f6 = jfeeg('bpd', total_mat_corrent_word_cov(i,:), opts); 
+    f7 = jfeeg('ha', total_mat_corrent_word_cov(i,:)); 
+    f8 = jfeeg('hm', total_mat_corrent_word_cov(i,:));
+    f9 = jfeeg('hc', total_mat_corrent_word_cov(i,:));
+    f10 = jfeeg('skew', total_mat_corrent_word_cov(i,:));
+    f11 = jfeeg('kurt', total_mat_corrent_word_cov(i,:));
+    f12 = jfeeg('1d', total_mat_corrent_word_cov(i,:));
+    f13 = jfeeg('n1d', total_mat_corrent_word_cov(i,:));
+    f14 = jfeeg('2d', total_mat_corrent_word_cov(i,:));
+    f15 = jfeeg('n2d', total_mat_corrent_word_cov(i,:));
+    f16 = jfeeg('mcl', total_mat_corrent_word_cov(i,:));
+    f17 = jfeeg('me', total_mat_corrent_word_cov(i,:));
+    f18 = jfeeg('mte', total_mat_corrent_word_cov(i,:));
+    f19 = jfeeg('lrssv', total_mat_corrent_word_cov(i,:));
+    f20 = jfeeg('te', total_mat_corrent_word_cov(i,:));
+    f21 = jfeeg('sh', total_mat_corrent_word_cov(i,:));
+    f22 = jfeeg('le', total_mat_corrent_word_cov(i,:));
+    f23 = jfeeg('re', total_mat_corrent_word_cov(i,:));
+    f24 = jfeeg('am', total_mat_corrent_word_cov(i,:));
+    f25 = jfeeg('sd', total_mat_corrent_word_cov(i,:));
+    f26 = jfeeg('var', total_mat_corrent_word_cov(i,:));
+    f27 = jfeeg('md', total_mat_corrent_word_cov(i,:));
+    f28 = jfeeg('ar', total_mat_corrent_word_cov(i,:));
+    f29 = jfeeg('max', total_mat_corrent_word_cov(i,:));
+    f30 = jfeeg('min', total_mat_corrent_word_cov(i,:));
+    
+    feat = [f1, f2, f3, f4, f5, f6, f7 , f8 , f9 , f10 , f11 , f12 , f13 , f14 , f15 , f16 , f17 , f18 , f19 , f20 , f21 , f22 , f23 , f24 , f25 , f26 , f27 , f28 , f29 , f30 , labels(i)];
+    feat_mat_corrent_word_cov(i,:) = feat;
+end
+
+t_total_mat_corrent_word_channel_cov = [total_mat_corrent_word_channel_cov labels'];
+t_total_mat_corrent_word = [total_mat_corrent_word labels'];
+t_total_mat_correct_nonword_cov = [total_mat_correct_nonword_cov labels'];
+t_total_mat_corrent_word_cov = [total_mat_corrent_word_cov labels'];
+r_total_mat_correct_nonword_channel_cov = [total_mat_correct_nonword_channel_cov labels'];
+
 % - Feature reduction section: PCA
 %fprintf('Calculate PCA matrix \n');
 %pca_cov_dys = pca(GLOBAL_CORRECT);
 %[dysU, dysS, dysV] = pca(EEG_EVENT_DYS, 2);
 
 % - Classifier section: SVM Classification
-fprintf('Starting SVM training \n');
-Mdl = fitcsvm(total_mat_corrent_word_channel_cov, labels);
-predicted = predict(Mdl, ALL_SUBJECTS_CORRECT_WORD_COV);
+% fprintf('Starting SVM training \n');
+% Mdl = fitcsvm(total_mat_corrent_word_channel_cov, labels);
+% predicted = predict(Mdl, ALL_SUBJECTS_CORRECT_WORD_COV);
 
 %[SVM_TPR_DYS ,SVM_FPR_DYS ,SVM_TNR_DYS ,SVM_PPV_DYS] =...
 %    svmClassification(mat_cov_dys,ds_cov_dys,per_of_train,num_of_iterations);
 
-plotClassificationResults(SVM_TPR_CONTROL ,SVM_FPR_CONTROL ,SVM_TNR_CONTROL ,SVM_PPV_CONTROL);
+%plotClassificationResults(SVM_TPR_CONTROL ,SVM_FPR_CONTROL ,SVM_TNR_CONTROL ,SVM_PPV_CONTROL);
 %plotClassificationResults(SVM_TPR_DYS ,SVM_FPR_DYS ,SVM_TNR_DYS ,SVM_PPV_DYS);
     
 

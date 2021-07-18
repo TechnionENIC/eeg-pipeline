@@ -1,7 +1,7 @@
 clc; % clear command window
 
 % TODO: validation of required plugins and update version
-requiredPlugins = ['ICLabel' 'PrepPipeline0.55.4' 'SIFT1.52', 'dipfit3.6'];
+requiredPlugins = ['ICLabel' 'PrepPipeline0.55.4' 'dipfit3.6'];
 
 [ALLEEG, EEG, CURRENTSET, ALLCOM] = eeglab;
 
