@@ -1,7 +1,7 @@
 clc; % clear command window
 
 % TODO: validation of required plugins and update version
-requiredPlugins = ['ICLabel' 'PrepPipeline0.55.4' 'dipfit3.6'];
+requiredPlugins = ['ICLabel' 'PrepPipeline0.55.4' 'SIFT1.52', 'dipfit3.6'];
 
 [ALLEEG, EEG, CURRENTSET, ALLCOM] = eeglab;
 
@@ -180,7 +180,7 @@ for n=1:numOfSubjects
           fprintf('\n--- Step 4: Run Independent component analysis (ICA) [subject %d] ---\n', n);
         % Using new ASR & Clean_rawdata
         %TODO: Should be added to GUI configurtaion
-        EEG = pop_clean_rawdata(EEG, 'BurstCriterion',20,'WindowCriterion',0.25,'BurstRejection','on','Distance','Euclidian','WindowCriterionTolerances',[-Inf 7] );
+        EEG = pop_clean_rawdata(EEG, 'FlatlineCriterion',5,'ChannelCriterion',0.8,'LineNoiseCriterion',4,'Highpass','off','BurstCriterion',20,'WindowCriterion',0.25,'BurstRejection','on','Distance','Euclidian','WindowCriterionTolerances',[-Inf 7] );
         EEG = pop_select( EEG, 'nopoint',TMPREJ(:,1:2));
         fileID = fopen(fullfile(subjectOutputPath, setname + '_reject.txt'),'w');
         fprintf(fileID, TMPREJ(:,1:2));
@@ -239,22 +239,22 @@ for n=1:numOfSubjects
 		 brain = [RunPipelineConfiguration("brain") 1];
         end
         if (RunPipelineConfiguration("muscle") > 0)
-		 brain = [RunPipelineConfiguration("muscle") 1];
+		 muscle = [RunPipelineConfiguration("muscle") 1];
         end
         if (RunPipelineConfiguration("eye") > 0)
-		 brain = [RunPipelineConfiguration("eye") 1];
+		 eye = [RunPipelineConfiguration("eye") 1];
         end
         if (RunPipelineConfiguration("heart") > 0)
-		 brain = [RunPipelineConfiguration("heart") 1];
+		 heart = [RunPipelineConfiguration("heart") 1];
         end
         if (RunPipelineConfiguration("line") > 0)
-		 brain = [RunPipelineConfiguration("line") 1];
+		 line = [RunPipelineConfiguration("line") 1];
         end
 		if (RunPipelineConfiguration("channel") > 0)
-		 brain = [RunPipelineConfiguration("channel") 1];
+		 channel = [RunPipelineConfiguration("channel") 1];
 		end
 		if (RunPipelineConfiguration("other") > 0)
-		 brain = [RunPipelineConfiguration("other") 1];
+		 other = [RunPipelineConfiguration("other") 1];
 		end
 		
 		icflagThresh = [brain;muscle;eye;heart;line;channel;other];
